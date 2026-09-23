@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IRENIC | Chat de Convivencia Escolar - Colegio San Alberto Magno (COLSAM)</title>
+  <meta name="description" content="Espacio exclusivo para interactuar con Irenic, asistente inteligente del Manual de Convivencia del Colegio San Alberto Magno.">
+
+  <!-- Favicon Oficial con el Logo del Robot -->
+  <link rel="icon" type="image/webp" href="assets/logo.webp">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estilos con Paleta Cromática Oficial -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="chat-page-body">
+
+  <!-- ========================================================================
+       CABECERA DEL AMBIENTE EXCLUSIVO DEL CHATBOT
+       ======================================================================== -->
+  <header class="chat-workspace-header">
+    <div style="display: flex; align-items: center; gap: 0.85rem;">
+      <a href="index.html" class="chat-back-btn" title="Regresar a la página de presentación">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span class="btn-text-desktop">Volver a la Presentación</span>
+        <span class="btn-text-mobile">Volver</span>
+      </a>
+
+      <div class="chat-bot-identity">
+        <!-- Avatar con el Logo Oficial del Robot -->
+        <img src="assets/logo.webp" alt="Irenic Asistente de Convivencia" class="chat-bot-avatar-img">
+        
+        <div class="chat-bot-info">
+          <div class="chat-bot-name">
+            IRENIC
+            <span class="badge-tag">COLSAM</span>
+          </div>
+          <div class="chat-bot-status">
+            <span class="status-dot-green"></span>
+            <span>Manual de Convivencia • En línea</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Indicador de Subida de Archivos y Nueva Consulta -->
+    <div class="chat-header-actions">
+      <button id="btn-nueva-consulta" class="chat-back-btn" style="cursor: pointer;" title="Reiniciar chat e iniciar consulta limpia">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+        <span class="btn-text-desktop">Nueva Consulta</span>
+        <span class="btn-text-mobile">Reiniciar</span>
+      </button>
+
+      <div class="file-feature-indicator" title="Puedes enviar fotos, excusas o documentos en PDF mediante el clip de la barra">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+        </svg>
+        <span>Adjuntar documentos</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       ÁREA PRINCIPAL DEL WORKSPACE DE CHAT
+       ======================================================================== -->
+  <main class="chat-workspace-main">
+    
+    <!-- Barra de Sugerencias Rápidas para Estudiantes -->
+    <div class="chat-prompts-bar">
+      <div class="chat-prompts-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-ocre-dorado);">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span>Sugerencias:</span>
+      </div>
+      <button class="chip-btn" data-prompt="¿Cuáles son las diferencias entre faltas Tipo 1, Tipo 2 y Tipo 3 según el Manual de Convivencia?">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v18"></path>
+          <path d="M6 8l6-3 6 3"></path>
+          <path d="M6 8l-3 7a3 3 0 0 0 6 0L6 8z"></path>
+          <path d="M18 8l-3 7a3 3 0 0 0 6 0L18 8z"></path>
+        </svg>
+        <span>Faltas Tipo I, II y III</span>
+      </button>
+      <button class="chip-btn" data-prompt="¿Cuáles son las normas sobre el uso correcto del uniforme escolar institucional?">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path>
+        </svg>
+        <span>Normas del Uniforme</span>
+      </button>
+      <button class="chip-btn" data-prompt="¿Cuáles son mis derechos fundamentales y el debido proceso de defensa como estudiante?">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        <span>Derechos y Debido Proceso</span>
+      </button>
+      <button class="chip-btn" data-prompt="¿Cuál es la ruta de atención integral ante un caso de agresión o acoso escolar (bullying)?">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M4.93 4.93l4.24 4.24"></path>
+          <path d="M14.83 14.83l4.24 4.24"></path>
+          <path d="M14.83 9.17l4.24-4.24"></path>
+          <path d="M4.93 19.07l4.24-4.24"></path>
+        </svg>
+        <span>Ruta contra el Acoso</span>
+      </button>
+      <button class="chip-btn" data-prompt="¿Cómo es el protocolo para justificar una inasistencia o excusa médica?">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        <span>Excusas e Inasistencias</span>
+      </button>
+      <button class="chip-btn" data-prompt="¿Está permitido el uso de celulares y tablets en el salón de clase?">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+          <line x1="12" y1="18" x2="12.01" y2="18"></line>
+        </svg>
+        <span>Celulares en el Aula</span>
+      </button>
+    </div>
+
+    <!-- Contenedor Embebido Exclusivo de IRENIC -->
+    <div class="embedded-chat-wrapper">
+      
+      <!-- Pantalla de carga mientras se monta el chat -->
+      <div id="chat-loading" class="chat-loading-placeholder">
+        <div class="loading-spinner-green"></div>
+        <div class="loading-text">Iniciando consulta con Irenic...</div>
+      </div>
+
+      <!-- AQUÍ SE MONTA DIRECTAMENTE EL CHATBOT DE BOTPRESS -->
+      <div id="irenic-embedded-chat"></div>
+
+    </div>
+
+  </main>
+
+  <!-- Script Controlador Irenic -->
+  <script src="js/app.js"></script>
+
+  <!-- Integración Oficial Botpress Webchat v5 montada DESPUÉS del contenedor -->
+  <script src="https://cdn.botpress.cloud/webchat/v5.0/inject.js"></script>
+  <script>
+    // 1. Limpiar historial y sesiones previas de almacenamiento
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('bp-') || k.includes('botpress') || k.includes('conversation'))) {
+          localStorage.removeItem(k);
+        }
+      }
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const k = sessionStorage.key(i);
+        if (k && (k.startsWith('bp-') || k.includes('botpress') || k.includes('conversation'))) {
+          sessionStorage.removeItem(k);
+        }
+      }
+    } catch(e) {}
+
+    // 2. Inicialización de Botpress con HISTORIAL Y HOME DESACTIVADOS
+    window.botpress.init({
+      "botId": "79600d56-2bf0-4828-83e9-e609cc464b68",
+      "configuration": {
+        "version": "v2",
+        "botName": "Irenic - Convivencia COLSAM",
+        "botAvatar": "assets/logo.webp",
+        "allowFileUpload": true,
+        "soundEnabled": true,
+        "conversationHistory": false,        // <-- DESACTIVADO: No guardar historial
+        "homePageEnabled": false,             // <-- DESACTIVADO: Entrar directo al chat
+        "storageLocation": "sessionStorage", // <-- No persistir permanentemente
+        "citationsEnabled": true,
+        "agentPresenceEnabled": true,
+        "embeddedChatId": "irenic-embedded-chat",
+        "hideWidget": true
+      },
+      "clientId": "8a8a54a2-e7bd-4283-9bb8-b9a707102929"
+    });
+
+    window.botpress.on('webchat:ready', () => {
+      try { window.botpress.open(); } catch(e) {}
+      hideChatLoadingPlaceholder();
+    });
+
+    setTimeout(() => {
+      try { window.botpress.open(); } catch(e) {}
+      hideChatLoadingPlaceholder();
+    }, 800);
+
+    // Botón para iniciar nueva consulta limpia
+    const btnNueva = document.getElementById('btn-nueva-consulta');
+    if (btnNueva) {
+      btnNueva.addEventListener('click', () => {
+        try {
+          if (window.botpress && typeof window.botpress.restartConversation === 'function') {
+            window.botpress.restartConversation();
+            showToastGreen('Iniciando una nueva consulta limpia...');
+          } else {
+            location.reload();
+          }
+        } catch(e) {
+          location.reload();
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
