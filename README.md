@@ -5,7 +5,7 @@ Portal web institucional moderno, limpio y amigable en **blanco y verde** diseñ
 
 ---
 
-## 🌟 Estructura del Portal
+##  Estructura del Portal
 
 1. **Página Principal de Presentación (`index.html`)**:
    - Diseño institucional limpio en blanco y verde esmeralda.
@@ -38,7 +38,7 @@ IRENIC/
 
 ---
 
-## 🚀 Cómo Probar el Proyecto
+##  Cómo Probar el Proyecto
 
 Abre directamente `index.html` o `chat.html` en cualquier navegador web moderno (Google Chrome, Edge, Safari, Firefox).
 O con cualquier servidor local:
