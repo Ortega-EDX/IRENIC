@@ -17,7 +17,7 @@ Portal web institucional moderno, limpio y amigable en **blanco y verde** diseñ
    - Espacio diseñado 100% para la conversación con Irenic.
    - **Chat Integrado en la Página**: No es una burbuja flotante pequeña en la esquina. El chat ocupa el área principal del espacio de trabajo.
    - **Barra de Entrada y Respuestas en la Página**: Escribe directamente y recibe respuestas fluidas en la interfaz.
-   - **Subida y Lectura de Archivos**: Botón de adjuntos (clip 📎) activo en la barra de mensajes para que los estudiantes puedan subir documentos (PDFs, excusas médicas o fotos de circulares) y que Irenic los lea e interprete.
+   - **Subida y Lectura de Archivos**: Botón de adjuntos (clip) activo en la barra de mensajes para que los estudiantes puedan subir documentos (PDFs, excusas médicas o fotos de circulares) y que Irenic los lea e interprete.
    - **Atajos Rápidos**: Botones superiores para preguntas frecuentes sobre faltas, uniformes, bullying y excusas con un solo clic.
    - Enlace directo *"← Volver a la Presentación"*.
 
