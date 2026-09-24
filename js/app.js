@@ -4,7 +4,7 @@
  */
 
 // Función de intercepción temprana para asegurar el montaje en el contenedor integrado
-functiñon setupBotpressEmbedded() {
+function setupBotpressEmbedded() {
   if (!window.botpress) return;
 
   const origInit = window.botpress.init;
