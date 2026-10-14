@@ -1,0 +1,1064 @@
+/* ==========================================================================
+   PORTAL INSTITUCIONAL IRENIC - COLEGIO SAN ALBERTO MAGNO (COLSAM)
+   Paleta Cromática Oficial (INMAT - Grado 11°):
+   - Hueso: #E8E2D8 (Fondo principal / Tono neutro dominante anti-fatiga)
+   - Gris Platino: #BFC6C4 (Contraste secundario y tarjetas de contenido)
+   - Verde Institucional: #338C30 (Color de interacción y botones)
+   - Ocre Dorado: #F2A65A (Color de acento cálido)
+   ========================================================================== */
+
+:root {
+  /* Paleta Cromática Oficial */
+  --color-hueso: #E8E2D8;
+  --color-hueso-soft: #F3EFE9;
+  --color-hueso-card: #FAF8F5;
+  --color-gris-platino: #BFC6C4;
+  --color-gris-platino-soft: #D3DAD8;
+  --color-verde-inst: #338C30;
+  --color-verde-hover: #277024;
+  --color-verde-dark: #1A4718;
+  --color-verde-subtle: #E2EFE1;
+  --color-ocre-dorado: #F2A65A;
+  --color-ocre-hover: #E09241;
+  --color-ocre-soft: rgba(242, 166, 90, 0.18);
+  
+  /* Textos de alta legibilidad para evitar fatiga visual */
+  --text-main: #1D2623;
+  --text-heading: #143512;
+  --text-muted: #3D4A46;
+  --text-subtle: #576863;
+  --text-inverse: #FFFFFF;
+  
+  /* Bordes y sombras suaves */
+  --border-platino: #BFC6C4;
+  --border-soft: rgba(191, 198, 196, 0.5);
+  --border-verde: rgba(51, 140, 48, 0.4);
+  --shadow-sm: 0 2px 6px rgba(29, 38, 35, 0.05);
+  --shadow-card: 0 4px 16px rgba(29, 38, 35, 0.07);
+  --shadow-hover: 0 10px 25px rgba(51, 140, 48, 0.16);
+  
+  /* Tipografía y radios */
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  
+  --transition: all 0.22s ease-in-out;
+}
+
+/* Reset y base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-hueso);
+  color: var(--text-main);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ocultar la burbuja flotante de Botpress en todo el sitio */
+#fab-root, .bpFab, [id="fab-root"], div[class*="bpFab"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+/* Scrollbar estilizada en la paleta oficial */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-hueso);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-gris-platino);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-verde-inst);
+}
+
+/* ==========================================================================
+   PÁGINA PRINCIPAL (PRESENTACIÓN DE IRENIC)
+   ========================================================================== */
+.site-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Cabecera */
+.header-landing {
+  background: var(--color-hueso-soft);
+  border-bottom: 2px solid var(--color-gris-platino);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: 0.85rem 1.5rem;
+}
+
+.header-inner {
+  max-width: 1140px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand-box {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-logo-img {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  background: #ffffff;
+  padding: 3px;
+  border: 1.5px solid var(--color-verde-inst);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.brand-box:hover .brand-logo-img {
+  transform: scale(1.05);
+}
+
+.brand-names {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.badge-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.18rem 0.55rem;
+  border-radius: var(--radius-full);
+  background: var(--color-verde-subtle);
+  color: var(--color-verde-dark);
+  border: 1px solid var(--border-verde);
+}
+
+.brand-school {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Botón interactivo principal (Verde Institucional #338C30) */
+.btn-cta-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  background-color: var(--color-verde-inst);
+  color: var(--text-inverse);
+  padding: 0.6rem 1.35rem;
+  border-radius: var(--radius-full);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: var(--transition);
+  box-shadow: 0 3px 12px rgba(51, 140, 48, 0.28);
+  border: none;
+  cursor: pointer;
+}
+
+.btn-cta-nav:hover {
+  background-color: var(--color-verde-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(51, 140, 48, 0.38);
+}
+
+/* ==========================================================================
+   HERO: PRESENTACIÓN DE IRENIC
+   ========================================================================== */
+.hero-presentation {
+  padding: 4rem 1.5rem 3.5rem;
+  background: linear-gradient(180deg, var(--color-hueso-soft) 0%, var(--color-hueso) 100%);
+  border-bottom: 2px solid var(--color-gris-platino);
+}
+
+.hero-box {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3rem;
+}
+
+.hero-content-col {
+  flex: 1;
+}
+
+.hero-mascot-col {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-mascot-card {
+  background: #ffffff;
+  border: 2px solid var(--color-gris-platino);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+  text-align: center;
+  max-width: 260px;
+  transition: var(--transition);
+}
+
+.hero-mascot-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-verde-inst);
+  box-shadow: var(--shadow-hover);
+}
+
+.hero-mascot-img {
+  width: 170px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 0.75rem;
+}
+
+.hero-mascot-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  border: 1.5px solid var(--color-ocre-dorado);
+  padding: 0.35rem 0.95rem;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-verde-dark);
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  max-width: 100%;
+}
+
+.status-dot-green {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: var(--color-verde-inst);
+  box-shadow: 0 0 0 3px rgba(51, 140, 48, 0.25);
+  flex-shrink: 0;
+}
+
+.hero-headline {
+  font-size: clamp(1.8rem, 4vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.22;
+  color: var(--text-heading);
+  letter-spacing: -0.03em;
+  margin-bottom: 1.25rem;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.hero-headline .highlight-green {
+  color: var(--color-verde-inst);
+  position: relative;
+  display: inline-block;
+}
+
+.hero-headline .highlight-green::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 4px;
+  width: 100%;
+  height: 8px;
+  background: var(--color-ocre-soft);
+  z-index: -1;
+  border-radius: 4px;
+}
+
+.hero-subtext {
+  font-size: 1.08rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin-bottom: 2rem;
+  max-width: 620px;
+}
+
+/* Botón CTA gigante de entrada al chat */
+.hero-cta-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.btn-enter-chat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background-color: var(--color-verde-inst);
+  color: var(--text-inverse);
+  padding: 0.95rem 2.25rem;
+  border-radius: var(--radius-full);
+  font-size: 1.08rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 8px 22px rgba(51, 140, 48, 0.32);
+  transition: var(--transition);
+  border: 1px solid var(--color-verde-dark);
+  max-width: 100%;
+  text-align: center;
+}
+
+.btn-enter-chat:hover {
+  background-color: var(--color-verde-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(51, 140, 48, 0.42);
+}
+
+.btn-enter-chat svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
+}
+
+.btn-enter-chat:hover svg {
+  transform: translateX(4px);
+}
+
+.cta-subnote {
+  font-size: 0.82rem;
+  color: var(--text-subtle);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.cta-subnote svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   SECCIÓN DE CAPACIDADES (Fondo Gris Platino y Hueso)
+   ========================================================================== */
+.features-section {
+  padding: 4.5rem 1.5rem;
+  max-width: 1140px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.section-title-wrap {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.section-tag {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-verde-dark);
+  background: var(--color-gris-platino);
+  padding: 0.28rem 0.85rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.65rem;
+  display: inline-block;
+  border: 1px solid rgba(29, 38, 35, 0.1);
+}
+
+.section-main-title {
+  font-size: clamp(1.6rem, 3vw, 2.15rem);
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+}
+
+.cards-grid-presentation {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Tarjetas de Capacidades IRENIC (Imágenes Ilustrativas Profesionales) */
+.presentation-card {
+  background: #ffffff;
+  border: 1.5px solid var(--color-gris-platino);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.25rem 1.6rem;
+  box-shadow: var(--shadow-card);
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.presentation-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--color-verde-inst);
+}
+
+.card-img-container {
+  width: 100%;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.2rem;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--color-hueso-soft);
+}
+
+.card-img-illustration {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.35s ease;
+}
+
+.card-img-illustration.cover-fit {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+
+.presentation-card:hover .card-img-illustration {
+  transform: scale(1.05);
+}
+
+.card-icon-circle {
+  display: none;
+}
+
+.presentation-card h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin-bottom: 0.6rem;
+}
+
+.presentation-card p {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Banner de Subida de Archivos con acento Ocre Dorado */
+.upload-feature-banner {
+  margin-top: 3.5rem;
+  background: var(--color-hueso-card);
+  border: 2px dashed var(--color-verde-inst);
+  border-radius: var(--radius-lg);
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+}
+
+.upload-text {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.upload-text h4 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-verde-dark);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.upload-text p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   FOOTER CON CRÉDITOS OFICIALES Y AUTORES
+   ========================================================================== */
+.footer-landing {
+  margin-top: auto;
+  background: var(--color-hueso-soft);
+  border-top: 2px solid var(--color-gris-platino);
+  padding: 2.5rem 1.5rem 2rem;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  width: 100%;
+}
+
+.footer-landing-inner {
+  max-width: 1140px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.footer-credits-box {
+  background: var(--color-hueso-card);
+  border: 1px solid var(--color-gris-platino);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.footer-credits-title {
+  font-weight: 800;
+  color: var(--color-verde-dark);
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.footer-authors-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  list-style: none;
+  margin-top: 0.35rem;
+  width: 100%;
+}
+
+.footer-authors-list li {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.footer-authors-list a {
+  color: var(--color-verde-inst);
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.footer-authors-list a:hover {
+  text-decoration: underline;
+}
+
+.footer-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.82rem;
+}
+
+.footer-bottom-row a {
+  color: var(--color-verde-inst);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footer-bottom-row a:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   AMBIENTE EXCLUSIVO DEL CHATBOT (chat.html)
+   ========================================================================== */
+.chat-page-body {
+  height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-hueso);
+  overflow: hidden;
+}
+
+/* Cabecera del Espacio de Chat */
+.chat-workspace-header {
+  background: var(--color-hueso-soft);
+  border-bottom: 2px solid var(--color-gris-platino);
+  padding: 0.65rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.chat-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #ffffff;
+  color: var(--color-verde-dark);
+  border: 1.5px solid var(--color-gris-platino);
+  padding: 0.42rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.chat-back-btn:hover {
+  background: var(--color-verde-subtle);
+  border-color: var(--color-verde-inst);
+  color: var(--color-verde-hover);
+}
+
+.chat-bot-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chat-bot-avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  padding: 2px;
+  border: 1.5px solid var(--color-verde-inst);
+  object-fit: contain;
+}
+
+.chat-bot-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-bot-name {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.chat-bot-status {
+  font-size: 0.75rem;
+  color: var(--color-verde-inst);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.file-feature-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: #ffffff;
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-gris-platino);
+}
+
+/* Área central de trabajo del chat */
+.chat-workspace-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: calc(100vh - 64px);
+  background: var(--color-hueso);
+  overflow: hidden;
+}
+
+/* Barra de sugerencias superiores con chips */
+.chat-prompts-bar {
+  background: var(--color-hueso-soft);
+  border-bottom: 1.5px solid var(--color-gris-platino);
+  padding: 0.55rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chat-prompts-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--color-verde-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.chip-btn {
+  background: #ffffff;
+  border: 1.5px solid var(--color-gris-platino);
+  color: var(--text-main);
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(29, 38, 35, 0.04);
+}
+
+.chip-btn:hover {
+  background: var(--color-verde-subtle);
+  border-color: var(--color-verde-inst);
+  color: var(--color-verde-dark);
+}
+
+.chip-btn svg {
+  color: var(--color-verde-inst);
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.chip-btn:hover svg {
+  color: var(--color-verde-dark);
+}
+
+/* Contenedor Embebido Exclusivo de Botpress Webchat */
+.embedded-chat-wrapper {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-hueso);
+}
+
+#irenic-embedded-chat {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+#irenic-embedded-chat > * {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+}
+
+/* Estado de carga inicial del chat */
+.chat-loading-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--color-hueso);
+  z-index: 10;
+  transition: opacity 0.3s ease;
+}
+
+.chat-loading-placeholder.loaded {
+  opacity: 0;
+  pointer-events: none;
+  display: none !important;
+}
+
+.loading-spinner-green {
+  width: 44px;
+  height: 44px;
+  border: 3.5px solid var(--color-gris-platino);
+  border-top-color: var(--color-verde-inst);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Toast de notificación rápida */
+.toast-notice-green {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--color-verde-dark);
+  color: var(--text-inverse);
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  opacity: 0;
+  transition: var(--transition);
+  pointer-events: none;
+}
+
+.toast-notice-green.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* Ocultar botones de historial o pantalla de conversaciones */
+[class*="bpConversationHistory"], 
+[class*="bpHistoricalList"],
+button[aria-label*="Conversaciones"],
+button[aria-label*="Conversations"],
+[class*="bpHeaderButtonBack"],
+.bpHeaderBackButton {
+  display: none !important;
+}
+
+/* ==========================================================================
+   RESPONSIVIDAD Y FLUIDEZ MULTIDISPOSITIVO
+   ========================================================================== */
+.btn-text-mobile, .btn-nav-mobile {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .hero-box {
+    flex-direction: column-reverse;
+    text-align: center;
+    gap: 2rem;
+  }
+  
+  .hero-cta-group {
+    align-items: center;
+  }
+  
+  .hero-subtext {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .hero-mascot-card {
+    max-width: 200px;
+    padding: 1rem;
+  }
+  
+  .hero-mascot-img {
+    width: 130px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-landing {
+    padding: 0.75rem 1rem;
+  }
+  
+  .brand-school {
+    display: none;
+  }
+  
+  .btn-cta-nav {
+    padding: 0.5rem 1rem;
+    font-size: 0.82rem;
+  }
+  
+  .btn-enter-chat {
+    padding: 0.85rem 1.75rem;
+    font-size: 1rem;
+    width: 100%;
+  }
+  
+  .cards-grid-presentation {
+    grid-template-columns: 1fr;
+  }
+  
+  .file-feature-indicator {
+    display: none;
+  }
+  
+  .chat-workspace-header {
+    padding: 0.5rem 0.85rem;
+  }
+  
+  .chat-bot-status {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-landing {
+    padding: 0.55rem 0.85rem;
+  }
+  .brand-box {
+    gap: 0.5rem;
+  }
+  .brand-logo-img {
+    width: 36px;
+    height: 36px;
+  }
+  .brand-title {
+    font-size: 1.05rem;
+  }
+  .badge-tag {
+    display: none !important;
+  }
+  .brand-school {
+    display: none !important;
+  }
+  .btn-cta-nav {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.8rem;
+    gap: 0.35rem;
+  }
+  .btn-nav-desktop {
+    display: none !important;
+  }
+  .btn-nav-mobile {
+    display: inline !important;
+  }
+  .hero-presentation {
+    padding: 2.25rem 1rem 1.75rem;
+  }
+  .hero-pill {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.75rem;
+    text-align: center;
+    line-height: 1.35;
+  }
+  .hero-headline {
+    font-size: 1.55rem;
+    line-height: 1.25;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  .hero-subtext {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin-bottom: 1.4rem;
+  }
+  .hero-mascot-card {
+    max-width: 160px;
+    padding: 0.75rem;
+  }
+  .hero-mascot-img {
+    width: 100px;
+  }
+  .btn-enter-chat {
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    width: 100%;
+    gap: 0.45rem;
+  }
+  .upload-text {
+    min-width: unset;
+  }
+
+  /* Header de chat en móviles */
+  .chat-workspace-header {
+    padding: 0.45rem 0.65rem;
+    height: 56px;
+  }
+  .chat-back-btn {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+    gap: 0.3rem;
+  }
+  .btn-text-desktop {
+    display: none !important;
+  }
+  .btn-text-mobile {
+    display: inline !important;
+  }
+  .chat-bot-avatar-img {
+    width: 32px;
+    height: 32px;
+  }
+  .chat-bot-name {
+    font-size: 0.85rem;
+  }
+  .chat-bot-status {
+    display: none !important;
+  }
+  .footer-bottom-row {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
