@@ -1,5 +1,6 @@
 ﻿# IRENIC - Asistente de Convivencia Escolar
-### Colegio San Alberto Magno (COLSAM)
+## Colegio San Alberto Magno (COLSAM)
+
 Portal web institucional moderno, limpio y amigable en **blanco y verde**, desarrollado con **React (Vite)**, para que los estudiantes del **Colegio San Alberto Magno (COLSAM)** conozcan e interactúen con **IRENIC**, el chatbot oficial que orienta sobre el **Manual de Convivencia Escolar**, derechos, deberes, clasificación de faltas (Ley 1620 de 2013) y rutas de atención.
 🔗 **Sitio publicado:** https://ortega-edx.github.io/IRENIC/
 ---
