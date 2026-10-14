@@ -1062,3 +1062,69 @@ button[aria-label*="Conversations"],
     text-align: center;
   }
 }
+
+/* Layout principal para empujar el footer al final de la pantalla */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.main-content {
+  flex: 1;
+}
+/* Estilos del Footer de IRENIC */
+.irenic-footer {
+  background-color: #0f4c3a; /* Verde institucional */
+  color: #ffffff;
+  padding: 1.5rem 1rem;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  border-top: 3px solid #10b981;
+}
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  text-align: center;
+}
+@media (min-width: 768px) {
+  .footer-container {
+    flex-direction: row;
+    text-align: left;
+  }
+}
+.footer-copy {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #e2e8f0;
+}
+
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.footer-link {
+  color: #a7f3d0;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s ease-in-out;
+}
+
+.footer-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.footer-separator {
+  color: #047857;
+  font-size: 0.85rem;
+  user-select: none;
+}
