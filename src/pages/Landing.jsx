@@ -171,44 +171,29 @@ export default function Landing() {
         </section>
       </main>
 
-      {/* ========================================================================
-          PIE DE PÁGINA INSTITUCIONAL CON CRÉDITOS OFICIALES
-          ======================================================================== */}
-      <footer className="footer-landing">
-        <div className="footer-landing-inner">
-          {/* Ficha técnica institucional del proyecto */}
-          <div className="footer-credits-box">
-            <div className="footer-credits-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-verde-inst)', flexShrink: 0 }}>
-                <path d="M3 21h18"></path>
-                <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
-                <path d="M9 9h1"></path><path d="M9 13h1"></path><path d="M9 17h1"></path>
-                <path d="M14 9h1"></path><path d="M14 13h1"></path><path d="M14 17h1"></path>
-              </svg>
-              <span>Colegio San Alberto Magno (COLSAM) • INMAT</span>
-            </div>
-            <p>
-              <strong>Área:</strong> Tecnología e Informática | <strong>Grado:</strong> 11° (Once Grado) | <strong>Docente Orientador:</strong> <a href="mailto:isaiasbeleno@mail.colsam.edu.co">Isaías Enrique Beleño Morato</a>
-            </p>
-            <div style={{ marginTop: '0.5rem', fontWeight: 700, color: 'var(--color-verde-dark)' }}>
-              Equipo de Desarrollo Estudiantil:
-            </div>
-            <ul className="footer-authors-list">
-              <li><a href="mailto:ialmeida@mail.colsam.edu.co">Ignacio Geovanny Almeida Peñarrieta</a></li>
-              <li><a href="mailto:jmonsalvo@mail.colsam.edu.co">Jeider David Monsalvo Barrios</a></li>
-              <li><a href="mailto:jortega@mail.colsam.edu.co">Juan Sebastián Ortega Salcedo</a></li>
-              <li><a href="mailto:aricaurte@mail.colsam.edu.co">Alejandro David Ricaurte Colmenares</a></li>
-            </ul>
-          </div>
+      {/*{/* Botón para ir al Chat con Irenic */}
+      <div style={{ textAlign: 'center', margin: '2.5rem 0 1.5rem 0' }}>
+        <Link 
+          to="/chat" 
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            backgroundColor: 'var(--color-verde-inst, #10b981)',
+            color: '#ffffff',
+            padding: '0.8rem 1.8rem',
+            borderRadius: '10px',
+            fontWeight: '600',
+            fontSize: '1rem',
+            textDecoration: 'none',
+            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
+            transition: 'all 0.2s ease-in-out'
+          }}
+        >
+          Ir al Chat con Irenic →
+        </Link>
+      </div>
 
-          <div className="footer-bottom-row">
-            <div>&copy; 2026 Colegio San Alberto Magno. Manual de Convivencia Escolar.</div>
-            <div>
-              <Link to="/chat">Ir al Chat con Irenic →</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
