@@ -89,7 +89,7 @@ export default function Landing() {
             </div>
 
             <div className="hero-mascot-col">
-              <img src={`${ASSETS}logo.webp`} alt="Irenic - Asistente de Convivencia Escolar" className="hero-mascot-img" />
+              <img src={`${ASSETS}logo-principal.jpg`} alt="Irenic - Asistente de Convivencia Escolar" className="hero-mascot-img" />
             </div>
           </div>
         </section>

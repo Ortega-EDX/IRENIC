@@ -130,9 +130,9 @@ function TeamMemberCard({ integrante }) {
 
 export default function Nosotros() {
   usePageMeta({
-    title: 'Sobre IRENIC (SAM-Bot) | Nosotros - Colegio San Alberto Magno (COLSAM)',
+    title: 'Sobre IRENIC | Nosotros - Colegio San Alberto Magno (COLSAM)',
     description:
-      'Conoce el propósito, misión, visión, equipo de desarrollo INMAT y enfoque tecnológico de IRENIC (SAM-Bot), proyecto de grado del Colegio San Alberto Magno.',
+      'Conoce el propósito, misión, visión, equipo de desarrollo INMAT y enfoque tecnológico de IRENIC, proyecto de grado del Colegio San Alberto Magno.',
   });
 
   return (
@@ -186,7 +186,7 @@ export default function Nosotros() {
               </div>
 
               <h1 className="hero-headline">
-                Sobre <span className="highlight-green">IRENIC (SAM-Bot)</span>
+                Sobre <span className="highlight-green">IRENIC</span>
               </h1>
 
               <p className="hero-subtext">
@@ -207,7 +207,7 @@ export default function Nosotros() {
             </div>
 
             <div className="hero-mascot-col">
-              <img src={`${ASSETS}logo.webp`} alt="IRENIC (SAM-Bot) - Colegio San Alberto Magno" className="hero-mascot-img" />
+              <img src={`${ASSETS}logo-principal.jpg`} alt="IRENIC - Colegio San Alberto Magno" className="hero-mascot-img" />
             </div>
           </div>
         </section>

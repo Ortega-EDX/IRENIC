@@ -26,7 +26,7 @@ export default function TratamientoDatos() {
             Política de Tratamiento y Protección de Datos Personales – IRENIC
           </h1>
           <p className="irenic-legal-subtitle">
-            Proyecto Académico IRENIC (SAM-Bot) • Colegio San Alberto Magno (COLSAM) • Barranquilla, Colombia
+            Proyecto Académico IRENIC • Colegio San Alberto Magno (COLSAM) • Barranquilla, Colombia
           </p>
         </header>
 
@@ -57,7 +57,7 @@ export default function TratamientoDatos() {
           <h3>1. Identificación del Responsable</h3>
           <ul>
             <li>
-              <strong>Nombre del Proyecto:</strong> IRENIC (SAM-Bot) – Motor Normativo y Asistente del Manual de Convivencia Escolar.
+              <strong>Nombre del Proyecto:</strong> IRENIC – Motor Normativo y Asistente del Manual de Convivencia Escolar.
             </li>
             <li>
               <strong>Institución Educativa:</strong> Colegio San Alberto Magno (COLSAM), Barranquilla – Atlántico, Colombia.
