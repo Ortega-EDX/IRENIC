@@ -1,3 +1,9 @@
 node_modules
 dist
 .DS_Store
+.vercel
+
+# Archivos de variables de entorno (nunca subir claves a Git)
+.env
+.env.*
+!.env.example

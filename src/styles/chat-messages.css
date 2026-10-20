@@ -1,0 +1,313 @@
+/* ==========================================================================
+   CHAT ESTRUCTURADO DE IRENIC (Motor Normativo)
+   Solo agrega estilos nuevos para mensajes y barra de entrada.
+   Reutiliza la paleta y variables de style.css; no modifica ninguna regla existente.
+   ========================================================================== */
+
+/* Lista de mensajes con scroll */
+.irenic-chat-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.25rem 1.25rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  background: var(--color-hueso);
+  scroll-behavior: smooth;
+}
+
+.irenic-chat-messages-inner {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+
+/* Fila de mensaje */
+.irenic-msg-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.irenic-msg-row.usuario {
+  justify-content: flex-end;
+}
+
+.irenic-msg-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  padding: 2px;
+  border: 1.5px solid var(--color-verde-inst);
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Burbujas */
+.irenic-msg-bubble {
+  max-width: min(85%, 720px);
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.93rem;
+  line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.irenic-msg-row.bot .irenic-msg-bubble {
+  background: #ffffff;
+  color: var(--text-main);
+  border: 1.5px solid var(--color-gris-platino);
+  border-top-left-radius: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.irenic-msg-row.usuario .irenic-msg-bubble {
+  background: var(--color-verde-inst);
+  color: var(--text-inverse);
+  border-top-right-radius: 4px;
+  box-shadow: var(--shadow-sm);
+  white-space: pre-wrap;
+}
+
+.irenic-msg-row.bot.error .irenic-msg-bubble {
+  background: var(--color-ocre-soft);
+  border-color: var(--color-ocre-dorado);
+  color: var(--text-main);
+}
+
+.irenic-msg-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+/* Texto formateado del analisis */
+.irenic-msg-formatted > *:first-child {
+  margin-top: 0;
+}
+
+.irenic-msg-formatted > *:last-child {
+  margin-bottom: 0;
+}
+
+.irenic-msg-heading {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--color-verde-dark);
+  margin: 1rem 0 0.35rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1.5px solid var(--color-verde-subtle);
+}
+
+.irenic-msg-paragraph {
+  margin: 0.35rem 0;
+}
+
+.irenic-msg-list {
+  margin: 0.35rem 0 0.35rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.irenic-msg-list li::marker {
+  color: var(--color-verde-inst);
+  font-weight: 700;
+}
+
+.irenic-msg-formatted strong {
+  color: var(--text-heading);
+  font-weight: 700;
+}
+
+/* Estado de carga mientras se consulta el Manual */
+.irenic-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.irenic-typing-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid var(--color-gris-platino);
+  border-top-color: var(--color-verde-inst);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Barra de entrada */
+.irenic-chat-composer {
+  flex-shrink: 0;
+  background: var(--color-hueso-soft);
+  border-top: 2px solid var(--color-gris-platino);
+  padding: 0.75rem 1.25rem 0.6rem;
+}
+
+.irenic-chat-form {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.55rem;
+}
+
+.irenic-chat-input {
+  flex: 1;
+  resize: none;
+  max-height: 140px;
+  min-height: 44px;
+  padding: 0.65rem 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.93rem;
+  line-height: 1.5;
+  color: var(--text-main);
+  background: #ffffff;
+  border: 1.5px solid var(--color-gris-platino);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: var(--transition);
+}
+
+.irenic-chat-input:focus {
+  border-color: var(--color-verde-inst);
+  box-shadow: 0 0 0 3px var(--color-verde-subtle);
+}
+
+.irenic-chat-input:disabled {
+  background: var(--color-hueso-card);
+  cursor: not-allowed;
+}
+
+.irenic-icon-btn,
+.irenic-send-btn {
+  height: 44px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.irenic-icon-btn {
+  width: 44px;
+  background: #ffffff;
+  color: var(--color-verde-dark);
+  border: 1.5px solid var(--color-gris-platino);
+}
+
+.irenic-icon-btn:hover:not(:disabled) {
+  background: var(--color-verde-subtle);
+  border-color: var(--color-verde-inst);
+}
+
+.irenic-send-btn {
+  padding: 0 1.15rem;
+  background: var(--color-verde-inst);
+  color: var(--text-inverse);
+  border: none;
+  font-size: 0.9rem;
+}
+
+.irenic-send-btn:hover:not(:disabled) {
+  background: var(--color-verde-hover);
+}
+
+.irenic-icon-btn:disabled,
+.irenic-send-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Archivo adjunto seleccionado */
+.irenic-attach-preview {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.irenic-attach-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 100%;
+  padding: 0.25rem 0.5rem 0.25rem 0.8rem;
+  background: var(--color-verde-subtle);
+  border: 1px solid var(--border-verde);
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-verde-dark);
+}
+
+.irenic-attach-pill span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.irenic-attach-pill button {
+  border: none;
+  background: transparent;
+  color: var(--color-verde-dark);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.3rem;
+}
+
+.irenic-chat-disclaimer {
+  width: 100%;
+  max-width: 900px;
+  margin: 0.45rem auto 0;
+  font-size: 0.72rem;
+  color: var(--text-subtle);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .irenic-chat-messages {
+    padding: 0.9rem 0.75rem 0.5rem;
+  }
+  .irenic-msg-bubble {
+    max-width: 92%;
+    font-size: 0.9rem;
+  }
+  .irenic-msg-avatar {
+    display: none;
+  }
+  .irenic-chat-composer {
+    padding: 0.6rem 0.75rem 0.5rem;
+  }
+  .irenic-send-btn span {
+    display: none;
+  }
+  .irenic-send-btn {
+    padding: 0 0.85rem;
+  }
+}

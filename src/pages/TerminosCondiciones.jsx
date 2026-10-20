@@ -1,7 +1,13 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
+import usePageMeta from '../hooks/usePageMeta.js';
 
 export default function TerminosCondiciones() {
+  usePageMeta({
+    title: 'Términos y Condiciones de Uso | IRENIC - COLSAM',
+    description:
+      'Términos y Condiciones de Uso de la plataforma educativa IRENIC del Colegio San Alberto Magno (COLSAM).',
+  });
+
   return (
     <div style={{ maxWidth: '900px', margin: '2rem auto', padding: '0 1.5rem', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ marginBottom: '1.5rem' }}>
@@ -26,7 +32,11 @@ export default function TerminosCondiciones() {
 
         <h3 style={{ color: '#0f4c3a', marginTop: '1.5rem' }}>1. Aceptación de los términos</h3>
         <p>
-          Al acceder o interactuar con el chatbot IRENIC, aceptas quedar vinculado por estos Términos y Condiciones y por la Política de Tratamiento de Datos Personales del Colegio San Alberto Magno (COLSAM). Si no estás de acuerdo con alguna de las disposiciones, debes abstenerte de utilizar el servicio.
+          Al acceder o interactuar con el chatbot IRENIC, aceptas quedar vinculado por estos Términos y Condiciones y por la{' '}
+          <Link to="/tratamiento-datos" style={{ color: 'var(--color-verde-inst, #10b981)', fontWeight: 600 }}>
+            Política de Tratamiento de Datos Personales
+          </Link>{' '}
+          del Colegio San Alberto Magno (COLSAM). Si no estás de acuerdo con alguna de las disposiciones, debes abstenerte de utilizar el servicio.
         </p>
 
         <h3 style={{ color: '#0f4c3a', marginTop: '1.5rem' }}>2. Naturaleza y alcance del servicio</h3>
@@ -42,7 +52,7 @@ export default function TerminosCondiciones() {
         <ul style={{ paddingLeft: '1.5rem', margin: '0.5rem 0' }}>
           <li>El servicio debe ser utilizado exclusivamente con fines pedagógicos, educativos e informativos.</li>
           <li>No debes utilizar el chatbot para enviar mensajes ofensivos, difamatorios, lenguaje de odio o intentar alterar el correcto funcionamiento del sistema.</li>
-          <li>Al adjuntar archivos (documentos, excusas médicas o circulares), garantizas que posees la autorización adecuada y que no contienen material inapropiado.</li>
+          <li>Toda consulta debe formularse de manera respetuosa y conforme a los valores institucionales.</li>
         </ul>
 
         <h3 style={{ color: '#0f4c3a', marginTop: '1.5rem' }}>4. Modificaciones de los términos</h3>
@@ -62,7 +72,11 @@ export default function TerminosCondiciones() {
 
         <h3 style={{ color: '#0f4c3a', marginTop: '1.5rem' }}>7. Tratamiento de datos y privacidad</h3>
         <p>
-          Las consultas realizadas en IRENIC respetan los principios de la Ley 1581 de 2012 de Habeas Data en Colombia. La información enviada no será compartida con terceros ajenos a la institución y se utiliza para responder a las inquietudes del usuario.
+          Las consultas realizadas en IRENIC respetan los principios de la Ley 1581 de 2012 de Habeas Data en Colombia. Puedes consultar el detalle completo en nuestra sección de{' '}
+          <Link to="/tratamiento-datos" style={{ color: 'var(--color-verde-inst, #10b981)', fontWeight: 600 }}>
+            Tratamiento de Datos Personales
+          </Link>
+          .
         </p>
 
         <h3 style={{ color: '#0f4c3a', marginTop: '1.5rem' }}>8. Ley aplicable y jurisdicción</h3>

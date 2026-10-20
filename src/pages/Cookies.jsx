@@ -1,7 +1,13 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
+import usePageMeta from '../hooks/usePageMeta.js';
 
 export default function Cookies() {
+  usePageMeta({
+    title: 'Política de Cookies y Almacenamiento Local | IRENIC - COLSAM',
+    description:
+      'Política de Cookies y Almacenamiento Local de la plataforma educativa IRENIC del Colegio San Alberto Magno.',
+  });
+
   return (
     <div style={{ maxWidth: '900px', margin: '2rem auto', padding: '0 1.5rem', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ marginBottom: '1.5rem' }}>

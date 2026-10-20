@@ -1,0 +1,390 @@
+/* ==========================================================================
+   VISTAS INSTITUCIONALES COMPLEMENTARIAS (Nosotros, Tratamiento de Datos, Legales)
+   Reutiliza estrictamente las variables cromáticas de style.css (Hueso, Gris Platino,
+   Verde Institucional #338C30, Verde Oscuro #0f4c3a y Ocre Dorado #F2A65A).
+   ========================================================================== */
+
+.header-nav-group {
+  display: flex;
+  align-items: safe center;
+  flex-wrap: wrap;
+  flex-wrap: balance;
+  gap: 0.65rem;
+}
+
+.btn-cta-nav-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #ffffff;
+  color: var(--color-verde-dark);
+  padding: 0.56rem 1.2rem;
+  border-radius: var(--radius-full);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1.5px solid var(--color-verde-inst);
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-cta-nav-outline:hover {
+  background-color: var(--color-verde-subtle);
+  color: var(--color-verde-hover);
+  transform: translateY(-2px);
+}
+
+/* Contenedor general de páginas internas */
+.irenic-page-section {
+  padding: 3.25rem 1.5rem;
+  max-width: 1140px;
+  margin-inline: auto;
+  inline-size: 100%;
+}
+
+.irenic-page-section + .irenic-page-section {
+  padding-top: 0.5rem;
+}
+
+/* Misión y Visión (2 columnas adaptables) */
+.irenic-mv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.irenic-mv-card {
+  background: #ffffff;
+  border: 1.5px solid var(--color-gris-platino);
+  border-top: 4px solid var(--color-verde-inst);
+  border-radius: var(--radius-lg);
+  padding: 1.85rem 1.75rem;
+  box-shadow: var(--shadow-card);
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.irenic-mv-card.vision {
+  border-top-color: var(--color-ocre-dorado);
+}
+
+.irenic-mv-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--color-verde-inst);
+}
+
+.irenic-mv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  align-self: flex-start;
+  padding: 0.28rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--color-verde-subtle);
+  color: var(--color-verde-dark);
+  border: 1px solid var(--border-verde);
+}
+
+.irenic-mv-card.vision .irenic-mv-badge {
+  background: var(--color-ocre-soft);
+  color: var(--text-heading);
+  border-color: var(--color-ocre-dorado);
+}
+
+.irenic-mv-card h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.irenic-mv-card p {
+  font-size: 0.96rem;
+  color: var(--text-muted);
+  line-height: 1.68;
+}
+
+/* Cuadrícula del Equipo de Desarrollo (INMAT) */
+.irenic-team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.irenic-team-card {
+  background: #ffffff;
+  border: 1.5px solid var(--color-gris-platino);
+  border-radius: var(--radius-lg);
+  padding: 1.6rem 1.35rem;
+  box-shadow: var(--shadow-card);
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.irenic-team-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--color-verde-inst);
+}
+
+.irenic-team-avatar-wrap {
+  inline-size: 108px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  padding: 4px;
+  background: linear-gradient(135deg, var(--color-verde-inst), var(--color-ocre-dorado));
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.irenic-team-avatar-img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-hueso-soft);
+}
+
+.irenic-team-avatar-fallback {
+  inline-size: 100%;
+  block-size: 100%;
+  border-radius: 50%;
+  background: var(--color-hueso-soft);
+  color: var(--color-verde-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.irenic-team-role {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--color-verde-dark);
+  background: var(--color-verde-subtle);
+  border: 1px solid var(--border-verde);
+  padding: 0.22rem 0.75rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.6rem;
+}
+
+.irenic-team-name {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin-bottom: 0.55rem;
+  line-height: 1.3;
+}
+
+.irenic-team-bio {
+  font-size: 0.89rem;
+  color: var(--text-muted);
+  line-height: 1.58;
+  margin-bottom: 0.85rem;
+}
+
+.irenic-team-path-hint {
+  margin-block-start: auto;
+  font-size: 0.74rem;
+  color: var(--text-subtle);
+  background: var(--color-hueso-soft);
+  border: 1px dashed var(--color-gris-platino);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-sm);
+  inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* Tarjeta de Docente Orientador */
+.irenic-advisor-banner {
+  margin-top: 1.75rem;
+  background: var(--color-hueso-card);
+  border: 1.5px solid var(--color-gris-platino);
+  border-left: 5px solid var(--color-verde-inst);
+  border-radius: var(--radius-lg);
+  padding: 1.35rem 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.irenic-advisor-info h4 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin-bottom: 0.2rem;
+}
+
+.irenic-advisor-info p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Enfoque Tecnológico y Metodología */
+.irenic-tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.35rem;
+}
+
+.irenic-tech-card {
+  background: var(--color-hueso-card);
+  border: 1.5px solid var(--color-gris-platino);
+  border-radius: var(--radius-lg);
+  padding: 1.45rem 1.35rem;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.irenic-tech-card:hover {
+  border-color: var(--color-verde-inst);
+  box-shadow: var(--shadow-card);
+}
+
+.irenic-tech-icon {
+  inline-size: 42px;
+  block-size: 42px;
+  border-radius: var(--radius-md);
+  background: var(--color-verde-subtle);
+  color: var(--color-verde-inst);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+  border: 1px solid var(--border-verde);
+}
+
+.irenic-tech-card h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin-bottom: 0.45rem;
+}
+
+.irenic-tech-card p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Documento Normativo / Política de Tratamiento de Datos */
+.irenic-legal-wrapper {
+  max-width: 940px;
+  margin: 2.25rem auto 3rem;
+  padding: 0 1.25rem;
+}
+
+.irenic-legal-card {
+  background: #ffffff;
+  border: 1.5px solid var(--color-gris-platino);
+  border-radius: var(--radius-lg);
+  padding: clamp(1.5rem, 3.5vw, 2.75rem);
+  box-shadow: var(--shadow-card);
+}
+
+.irenic-legal-header {
+  border-bottom: 2px solid var(--color-gris-platino-soft);
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.65rem;
+}
+
+.irenic-legal-title {
+  color: var(--text-heading);
+  font-size: clamp(1.5rem, 3vw, 2.05rem);
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 0.45rem;
+}
+
+.irenic-legal-subtitle {
+  color: var(--text-muted);
+  font-size: 0.94rem;
+  font-weight: 600;
+}
+
+.irenic-legal-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.75rem;
+}
+
+.irenic-legal-meta-box {
+  background: var(--color-hueso-soft);
+  border: 1px solid var(--color-gris-platino);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+}
+
+.irenic-legal-meta-box strong {
+  display: block;
+  color: var(--color-verde-dark);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.irenic-legal-body {
+  color: var(--text-main);
+  line-height: 1.72;
+  font-size: 0.96rem;
+}
+
+.irenic-legal-body h3 {
+  color: var(--text-heading);
+  font-size: 1.12rem;
+  font-weight: 800;
+  margin-top: 1.65rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.irenic-legal-body p {
+  margin-bottom: 0.95rem;
+  color: var(--text-muted);
+}
+
+.irenic-legal-body ul {
+  padding-left: 1.4rem;
+  margin: 0.5rem 0 1rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.irenic-legal-highlight {
+  background: var(--color-verde-subtle);
+  border-left: 4px solid var(--color-verde-inst);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.2rem;
+  margin: 1.25rem 0;
+  color: var(--color-verde-dark);
+  font-size: 0.92rem;
+}

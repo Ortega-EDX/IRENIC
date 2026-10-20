@@ -1,11 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import usePageMeta from '../hooks/usePageMeta.js';
 import Toast from '../components/Toast.jsx';
+import FormattedMessage from '../components/FormattedMessage.jsx';
+import { consultarManual, IrenicModelError } from '../services/gemini.js';
+import '../styles/chat-messages.css';
 
 const ASSETS = `${import.meta.env.BASE_URL}assets/`;
-const BOTPRESS_SRC = 'https://cdn.botpress.cloud/webchat/v5.0/inject.js';
 
-/** Sugerencias rápidas (antes botones .chip-btn con data-prompt) */
+const MENSAJE_BIENVENIDA = {
+  id: 'bienvenida',
+  rol: 'bot',
+  esBienvenida: true,
+  texto: [
+    '## Motor Normativo del Manual de Convivencia',
+    'Describe tu situación o plantea un caso y lo analizaré bajo el Manual de Convivencia del Colegio San Alberto Magno.',
+    'Para cada consulta identificaré:',
+    '- **Hechos** relevantes del caso.',
+    '- **Tipificación** de la falta (Tipo I, II o III).',
+    '- **Artículos** del Manual involucrados.',
+    '- **Debido proceso** aplicable.',
+    'Ejemplos: "¿Qué pasa si llego tarde?" o "Me decomisaron el teléfono, ¿es legal?".',
+  ].join('\n'),
+};
+
+/** Sugerencias rápidas para estudiantes */
 const CHIPS = [
   {
     label: 'Faltas Tipo I, II y III',
@@ -68,49 +87,6 @@ const CHIPS = [
   },
 ];
 
-/** Limpia historial y sesiones previas de Botpress en el almacenamiento */
-function clearBotpressStorage() {
-  const clear = (storage) => {
-    for (let i = storage.length - 1; i >= 0; i--) {
-      const k = storage.key(i);
-      if (k && (k.startsWith('bp-') || k.includes('botpress') || k.includes('conversation'))) {
-        storage.removeItem(k);
-      }
-    }
-  };
-  try {
-    clear(localStorage);
-    clear(sessionStorage);
-  } catch (e) {
-    /* almacenamiento no disponible */
-  }
-}
-
-/** Inicialización de Botpress con HISTORIAL Y HOME DESACTIVADOS */
-function initBotpress() {
-  window.botpress.init({
-    botId: '79600d56-2bf0-4828-83e9-e609cc464b68',
-    configuration: {
-      version: 'v2',
-      botName: 'Irenic - Convivencia COLSAM',
-      botAvatar: `${ASSETS}logo.webp`,
-      allowFileUpload: true,
-      soundEnabled: true,
-      conversationHistory: false, // DESACTIVADO: No guardar historial
-      homePageEnabled: false, // DESACTIVADO: Entrar directo al chat
-      storageLocation: 'sessionStorage', // No persistir permanentemente
-      citationsEnabled: true,
-      agentPresenceEnabled: true,
-      embeddedChatId: 'irenic-embedded-chat',
-      hideWidget: true,
-    },
-    clientId: '8a8a54a2-e7bd-4283-9bb8-b9a707102929',
-  });
-}
-
-// Evita inicializar Botpress más de una vez (React.StrictMode ejecuta los efectos dos veces en desarrollo)
-let botpressStarted = false;
-
 export default function Chat() {
   usePageMeta({
     title: 'IRENIC | Chat de Convivencia Escolar - Colegio San Alberto Magno (COLSAM)',
@@ -119,9 +95,17 @@ export default function Chat() {
     bodyClass: 'chat-page-body',
   });
 
-  const [loaded, setLoaded] = useState(false);
+  const [messages, setMessages] = useState([MENSAJE_BIENVENIDA]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ message: '', show: false });
+
   const toastTimer = useRef(null);
+  const abortRef = useRef(null);
+  const finRef = useRef(null);
+  const inputRef = useRef(null);
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   /** Notificación Toast en verde institucional */
   const showToastGreen = useCallback((message) => {
@@ -130,108 +114,98 @@ export default function Chat() {
     toastTimer.current = setTimeout(() => setToast((t) => ({ ...t, show: false })), 3000);
   }, []);
 
-  /** Envía un mensaje directamente al chat embebido de Irenic */
-  const sendPromptToIrenic = useCallback(
-    (text) => {
-      if (!text) return;
+  // Desplazamiento automático al último mensaje
+  useEffect(() => {
+    finRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [messages, loading]);
 
-      showToastGreen(`Preguntando a Irenic: "${text.length > 30 ? text.substring(0, 30) + '...' : text}"`);
+  // Ajuste de altura del campo de texto
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
+  }, [input]);
 
-      if (window.botpress && typeof window.botpress.sendMessage === 'function') {
-        try {
-          window.botpress.sendMessage(text);
-        } catch (e) {
-          console.warn('Error al enviar mensaje a Botpress:', e);
+  // Cancela cualquier solicitud pendiente al salir de la página
+  useEffect(
+    () => () => {
+      abortRef.current?.abort();
+      clearTimeout(toastTimer.current);
+    },
+    []
+  );
+
+  /** Envía una consulta al motor normativo y agrega la respuesta al chat */
+  const enviarConsulta = useCallback(
+    async (textoCrudo) => {
+      const mensaje = (textoCrudo || '').trim();
+      if (!mensaje || loading) return;
+
+      const historial = messagesRef.current;
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `u-${Date.now()}`,
+          rol: 'usuario',
+          texto: mensaje,
+        },
+      ]);
+      setInput('');
+      setLoading(true);
+
+      const controlador = new AbortController();
+      abortRef.current = controlador;
+
+      try {
+        const respuesta = await consultarManual({
+          historial,
+          mensaje,
+          signal: controlador.signal,
+        });
+        setMessages((prev) => [...prev, { id: `b-${Date.now()}`, rol: 'bot', texto: respuesta }]);
+      } catch (e) {
+        if (e?.name === 'AbortError') return; // consulta reiniciada o página cerrada
+        const textoError =
+          e instanceof IrenicModelError
+            ? e.message
+            : 'No se pudo conectar con el modelo de IRENIC. Inténtalo de nuevo.';
+        setMessages((prev) => [
+          ...prev,
+          { id: `e-${Date.now()}`, rol: 'bot', esError: true, texto: textoError },
+        ]);
+      } finally {
+        if (abortRef.current === controlador) {
+          abortRef.current = null;
+          setLoading(false);
         }
-      } else {
-        setTimeout(() => {
-          if (window.botpress && typeof window.botpress.sendMessage === 'function') {
-            window.botpress.sendMessage(text);
-          }
-        }, 600);
       }
     },
-    [showToastGreen]
+    [loading]
   );
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    enviarConsulta(input);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      enviarConsulta(input);
+    }
+  };
 
   /** Botón para iniciar nueva consulta limpia */
   const handleNuevaConsulta = () => {
-    try {
-      if (window.botpress && typeof window.botpress.restartConversation === 'function') {
-        window.botpress.restartConversation();
-        showToastGreen('Iniciando una nueva consulta limpia...');
-      } else {
-        window.location.reload();
-      }
-    } catch (e) {
-      window.location.reload();
-    }
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setLoading(false);
+    setMessages([MENSAJE_BIENVENIDA]);
+    setInput('');
+    showToastGreen('Iniciando una nueva consulta limpia...');
   };
-
-  /**
-   * Volver a la presentación. Botpress inyecta elementos globales que no se pueden
-   * desmontar, por lo que se recarga la página para dejar todo limpio (igual que
-   * al navegar entre index.html y chat.html).
-   */
-  const handleBack = (e) => {
-    e.preventDefault();
-    window.location.hash = '#/';
-    window.location.reload();
-  };
-
-  useEffect(() => {
-    const timers = [];
-    const openAndHide = () => {
-      try {
-        window.botpress.open();
-      } catch (e) {
-        /* aún no disponible */
-      }
-      setLoaded(true);
-    };
-
-    const start = () => {
-      if (!window.botpress) return;
-      if (!botpressStarted) {
-        botpressStarted = true;
-        clearBotpressStorage();
-        initBotpress();
-        window.botpress.on('webchat:ready', openAndHide);
-      }
-      timers.push(setTimeout(openAndHide, 800));
-    };
-
-    if (window.botpress) {
-      start();
-    } else {
-      let script = document.querySelector(`script[src="${BOTPRESS_SRC}"]`);
-      if (!script) {
-        script = document.createElement('script');
-        script.src = BOTPRESS_SRC;
-        document.body.appendChild(script);
-      }
-      script.addEventListener('load', start);
-    }
-
-    // Watchdog para asegurar que el placeholder de carga se oculte
-    timers.push(
-      setTimeout(() => {
-        setLoaded(true);
-        if (window.botpress) {
-          try {
-            window.botpress.open();
-          } catch (e) {
-            /* sin acción */
-          }
-        }
-      }, 3500)
-    );
-
-    return () => {
-      timers.forEach(clearTimeout);
-      clearTimeout(toastTimer.current);
-    };
-  }, []);
 
   return (
     <>
@@ -240,14 +214,14 @@ export default function Chat() {
           ======================================================================== */}
       <header className="chat-workspace-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-          <a href="#/" onClick={handleBack} className="chat-back-btn" title="Regresar a la página de presentación">
+          <Link to="/" className="chat-back-btn" title="Regresar a la página de presentación">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
             <span className="btn-text-desktop">Volver a la Presentación</span>
             <span className="btn-text-mobile">Volver</span>
-          </a>
+          </Link>
 
           <div className="chat-bot-identity">
             {/* Avatar con el Logo Oficial del Robot */}
@@ -266,7 +240,7 @@ export default function Chat() {
           </div>
         </div>
 
-        {/* Indicador de Subida de Archivos y Nueva Consulta */}
+        {/* Acción de Nueva Consulta */}
         <div className="chat-header-actions">
           <button
             id="btn-nueva-consulta"
@@ -282,13 +256,6 @@ export default function Chat() {
             <span className="btn-text-desktop">Nueva Consulta</span>
             <span className="btn-text-mobile">Reiniciar</span>
           </button>
-
-          <div className="file-feature-indicator" title="Puedes enviar fotos, excusas o documentos en PDF mediante el clip de la barra">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-            </svg>
-            <span>Adjuntar documentos</span>
-          </div>
         </div>
       </header>
 
@@ -306,7 +273,12 @@ export default function Chat() {
           </div>
 
           {CHIPS.map((chip) => (
-            <button key={chip.label} className="chip-btn" onClick={() => sendPromptToIrenic(chip.prompt)}>
+            <button
+              key={chip.label}
+              className="chip-btn"
+              disabled={loading}
+              onClick={() => enviarConsulta(chip.prompt)}
+            >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 {chip.icon}
               </svg>
@@ -315,16 +287,65 @@ export default function Chat() {
           ))}
         </div>
 
-        {/* Contenedor Embebido Exclusivo de IRENIC */}
+        {/* Contenedor del chat estructurado de IRENIC */}
         <div className="embedded-chat-wrapper">
-          {/* Pantalla de carga mientras se monta el chat */}
-          <div id="chat-loading" className={`chat-loading-placeholder${loaded ? ' loaded' : ''}`}>
-            <div className="loading-spinner-green"></div>
-            <div className="loading-text">Iniciando consulta con Irenic...</div>
+          {/* Mensajes */}
+          <div className="irenic-chat-messages" role="log" aria-live="polite">
+            <div className="irenic-chat-messages-inner">
+              {messages.map((m) => (
+                <div key={m.id} className={`irenic-msg-row ${m.rol}${m.esError ? ' error' : ''}`}>
+                  {m.rol === 'bot' && <img src={`${ASSETS}logo.webp`} alt="" className="irenic-msg-avatar" />}
+                  <div className="irenic-msg-bubble">
+                    {m.rol === 'bot' ? <FormattedMessage texto={m.texto} /> : m.texto}
+                  </div>
+                </div>
+              ))}
+
+              {/* Estado de carga mientras se consulta el Manual */}
+              {loading && (
+                <div className="irenic-msg-row bot">
+                  <img src={`${ASSETS}logo.webp`} alt="" className="irenic-msg-avatar" />
+                  <div className="irenic-msg-bubble">
+                    <div className="irenic-typing">
+                      <span className="irenic-typing-spinner"></span>
+                      <span>Consultando el Manual de Convivencia...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={finRef}></div>
+            </div>
           </div>
 
-          {/* AQUÍ SE MONTA DIRECTAMENTE EL CHATBOT DE BOTPRESS */}
-          <div id="irenic-embedded-chat"></div>
+          {/* Barra de entrada */}
+          <div className="irenic-chat-composer">
+            <form className="irenic-chat-form" onSubmit={handleSubmit}>
+              <textarea
+                ref={inputRef}
+                className="irenic-chat-input"
+                rows={1}
+                value={input}
+                disabled={loading}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Describe tu situación o plantea un caso según el Manual de Convivencia..."
+                aria-label="Escribe tu consulta"
+              />
+
+              <button type="submit" className="irenic-send-btn" disabled={loading || !input.trim()}>
+                <span>Enviar</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </form>
+
+            <p className="irenic-chat-disclaimer">
+              Orientación informativa basada en el Manual de Convivencia. La decisión final corresponde a las instancias competentes del colegio.
+            </p>
+          </div>
         </div>
       </main>
 

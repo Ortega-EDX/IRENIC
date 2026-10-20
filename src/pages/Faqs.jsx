@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import usePageMeta from '../hooks/usePageMeta.js';
 
 export default function Faqs() {
+  usePageMeta({
+    title: 'Preguntas Frecuentes (FAQS) | IRENIC - COLSAM',
+    description:
+      'Preguntas frecuentes sobre el funcionamiento de IRENIC, el Asistente Virtual del Manual de Convivencia del Colegio San Alberto Magno.',
+  });
+
   const [openIndex, setOpenIndex] = useState(null);
 
   const toggleFaq = (index) => {
@@ -22,12 +29,12 @@ export default function Faqs() {
     {
       question: '3. ¿A quiénes está dirigido IRENIC?',
       answer:
-        'Está dirigido a los estidiantes del Colegio San Alberto Magno (COLSAM).'
+        'Está dirigido a los estudiantes y comunidad educativa del Colegio San Alberto Magno (COLSAM).'
     },
     {
       question: '4. ¿Qué tipo de consultas e interacciones permite el chatbot?',
       answer:
-        'Permite consultar la clasificación de faltas (leves, graves y gravísimas), uso correcto de uniformes, procedimientos de excusas médicas, derechos estudiantiles y la posibilidad de adjuntar documentos para orientaciones específicas.'
+        'Permite consultar la clasificación de faltas (Tipo I, II y III), uso correcto de uniformes, procedimientos de excusas médicas, derechos estudiantiles y el debido proceso aplicable a cada caso.'
     },
     {
       question: '5. ¿Cuánto tiempo toma recibir una respuesta de IRENIC?',
