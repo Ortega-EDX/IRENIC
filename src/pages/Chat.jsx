@@ -340,8 +340,8 @@ export default function Chat() {
           </Link>
 
           <div className="chat-bot-identity">
-            {/* Avatar con el Logo Oficial del Robot */}
-            <img src={`${ASSETS}logo.webp`} alt="Irenic Asistente de Convivencia" className="chat-bot-avatar-img" />
+            {/* Avatar con el Logo Simplificado del Robot */}
+            <img src={`${ASSETS}logo-simple.jpg`} alt="Irenic Asistente de Convivencia" className="chat-bot-avatar-img" />
 
             <div className="chat-bot-info">
               <div className="chat-bot-name">
@@ -410,7 +410,7 @@ export default function Chat() {
             <div className="irenic-chat-messages-inner">
               {messages.map((m) => (
                 <div key={m.id} className={`irenic-msg-row ${m.rol}${m.esError ? ' error' : ''}`}>
-                  {m.rol === 'bot' && <img src={`${ASSETS}logo.webp`} alt="" className="irenic-msg-avatar" />}
+                  {m.rol === 'bot' && <img src={`${ASSETS}logo-simple.jpg`} alt="" className="irenic-msg-avatar" />}
                   <div className="irenic-msg-bubble">
                     {m.adjuntoNombre && (
                       <div className="irenic-msg-attachment">
@@ -426,7 +426,7 @@ export default function Chat() {
               {/* Estado de carga mientras se consulta el Manual */}
               {loading && (
                 <div className="irenic-msg-row bot">
-                  <img src={`${ASSETS}logo.webp`} alt="" className="irenic-msg-avatar" />
+                  <img src={`${ASSETS}logo-simple.jpg`} alt="" className="irenic-msg-avatar" />
                   <div className="irenic-msg-bubble">
                     <div className="irenic-typing">
                       <span className="irenic-typing-spinner"></span>
@@ -472,35 +472,32 @@ export default function Chat() {
                 style={{ display: 'none' }}
               />
 
-              {/* Botón con icono SVG de Clip para subir imagen o PDF */}
-              <button
-                type="button"
-                className="irenic-icon-btn"
-                disabled={loading}
-                onClick={() => archivoRef.current?.click()}
-                title="Adjuntar imagen (PNG, JPG, WEBP) o PDF (máx. 3.5 MB)"
-                aria-label="Adjuntar imagen o PDF"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                </svg>
-              </button>
-
-              {/* Pequeño menú de archivos subidos en la consulta */}
+              {/* Único botón de Clip SVG (abre selector directo o el menú de archivos subidos) */}
               <div className="irenic-files-menu-anchor" ref={menuRef}>
                 <button
                   type="button"
-                  className={`irenic-files-btn${menuArchivosAbierto ? ' active' : ''}`}
-                  onClick={() => setMenuArchivosAbierto((prev) => !prev)}
-                  title="Ver archivos subidos en esta sesión"
+                  className={`irenic-icon-btn${menuArchivosAbierto ? ' active' : ''}`}
+                  disabled={loading}
+                  onClick={() => {
+                    if (archivosSubidos.length === 0) {
+                      archivoRef.current?.click();
+                    } else {
+                      setMenuArchivosAbierto((prev) => !prev);
+                    }
+                  }}
+                  title={
+                    archivosSubidos.length === 0
+                      ? 'Adjuntar imagen (PNG, JPG, WEBP) o PDF (máx. 3.5 MB)'
+                      : 'Ver archivos subidos o adjuntar otro'
+                  }
+                  aria-label="Adjuntar o ver archivos"
                   aria-expanded={menuArchivosAbierto}
                 >
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
                   </svg>
-                  <span className="irenic-files-btn-label">Archivos</span>
                   {archivosSubidos.length > 0 && (
-                    <span className="irenic-files-count">{archivosSubidos.length}</span>
+                    <span className="irenic-clip-badge">{archivosSubidos.length}</span>
                   )}
                 </button>
 
@@ -518,63 +515,57 @@ export default function Chat() {
                       </button>
                     </div>
 
-                    {archivosSubidos.length === 0 ? (
-                      <div className="irenic-files-empty">
-                        Aún no has subido imágenes ni PDFs en esta conversación.
-                      </div>
-                    ) : (
-                      <ul className="irenic-files-list">
-                        {archivosSubidos.map((item) => {
-                          const estaSeleccionado = adjunto?.id === item.id;
-                          return (
-                            <li
-                              key={item.id}
-                              className={`irenic-file-item${estaSeleccionado ? ' selected' : ''}`}
-                            >
-                              <div className="irenic-file-info">
-                                <IconoTipoArchivo mimeType={item.mimeType} size={16} />
-                                <div className="irenic-file-meta">
-                                  <span className="irenic-file-name" title={item.nombre}>
-                                    {item.nombre}
-                                  </span>
-                                  <span className="irenic-file-sub">
-                                    {formatearTamano(item.size)} • {estaSeleccionado ? 'Adjunto al mensaje' : 'Cargado'}
-                                  </span>
-                                </div>
+                    <ul className="irenic-files-list">
+                      {archivosSubidos.map((item) => {
+                        const estaSeleccionado = adjunto?.id === item.id;
+                        return (
+                          <li
+                            key={item.id}
+                            className={`irenic-file-item${estaSeleccionado ? ' selected' : ''}`}
+                          >
+                            <div className="irenic-file-info">
+                              <IconoTipoArchivo mimeType={item.mimeType} size={16} />
+                              <div className="irenic-file-meta">
+                                <span className="irenic-file-name" title={item.nombre}>
+                                  {item.nombre}
+                                </span>
+                                <span className="irenic-file-sub">
+                                  {formatearTamano(item.size)} • {estaSeleccionado ? 'Adjunto al mensaje' : 'Cargado'}
+                                </span>
                               </div>
+                            </div>
 
-                              <div className="irenic-file-actions">
-                                <button
-                                  type="button"
-                                  className="irenic-file-use-btn"
-                                  disabled={loading}
-                                  onClick={() => {
-                                    setAdjunto(estaSeleccionado ? null : item);
-                                    setMenuArchivosAbierto(false);
-                                  }}
-                                >
-                                  {estaSeleccionado ? 'Quitar' : 'Usar'}
-                                </button>
-                                <button
-                                  type="button"
-                                  className="irenic-file-del-btn"
-                                  onClick={() => eliminarArchivoMenu(item.id)}
-                                  title="Eliminar archivo de la lista"
-                                  aria-label={`Eliminar ${item.nombre}`}
-                                >
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                                    <path d="M10 11v6"></path>
-                                    <path d="M14 11v6"></path>
-                                  </svg>
-                                </button>
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
+                            <div className="irenic-file-actions">
+                              <button
+                                type="button"
+                                className="irenic-file-use-btn"
+                                disabled={loading}
+                                onClick={() => {
+                                  setAdjunto(estaSeleccionado ? null : item);
+                                  setMenuArchivosAbierto(false);
+                                }}
+                              >
+                                {estaSeleccionado ? 'Quitar' : 'Usar'}
+                              </button>
+                              <button
+                                type="button"
+                                className="irenic-file-del-btn"
+                                onClick={() => eliminarArchivoMenu(item.id)}
+                                title="Eliminar archivo de la lista"
+                                aria-label={`Eliminar ${item.nombre}`}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="3 6 5 6 21 6"></polyline>
+                                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                                  <path d="M10 11v6"></path>
+                                  <path d="M14 11v6"></path>
+                                </svg>
+                              </button>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </div>
                 )}
               </div>

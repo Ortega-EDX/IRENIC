@@ -143,7 +143,7 @@ export default function Nosotros() {
       <header className="header-landing">
         <div className="header-inner">
           <Link to="/" className="brand-box">
-            <img src={`${ASSETS}logo.webp`} alt="Logo IRENIC - Colegio San Alberto Magno" className="brand-logo-img" />
+            <img src={`${ASSETS}logo-simple.jpg`} alt="Logo IRENIC - Colegio San Alberto Magno" className="brand-logo-img" />
             <div className="brand-names">
               <div className="brand-title">
                 IRENIC
@@ -207,10 +207,7 @@ export default function Nosotros() {
             </div>
 
             <div className="hero-mascot-col">
-              <div className="hero-mascot-card">
-                <img src={`${ASSETS}logo.webp`} alt="IRENIC (SAM-Bot) - Colegio San Alberto Magno" className="hero-mascot-img" />
-                <div className="hero-mascot-label">IRENIC (SAM-Bot) • COLSAM</div>
-              </div>
+              <img src={`${ASSETS}logo.webp`} alt="IRENIC (SAM-Bot) - Colegio San Alberto Magno" className="hero-mascot-img" />
             </div>
           </div>
         </section>

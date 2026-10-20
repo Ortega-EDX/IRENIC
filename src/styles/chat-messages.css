@@ -213,14 +213,34 @@
 
 .irenic-icon-btn {
   width: 44px;
+  position: relative;
   background: #ffffff;
   color: var(--color-verde-dark);
   border: 1.5px solid var(--color-gris-platino);
 }
 
-.irenic-icon-btn:hover:not(:disabled) {
+.irenic-icon-btn:hover:not(:disabled),
+.irenic-icon-btn.active {
   background: var(--color-verde-subtle);
   border-color: var(--color-verde-inst);
+}
+
+.irenic-clip-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-verde-inst);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #ffffff;
 }
 
 .irenic-send-btn {

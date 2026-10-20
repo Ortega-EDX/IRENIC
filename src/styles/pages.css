@@ -4,6 +4,77 @@
    Verde Institucional #338C30, Verde Oscuro #0f4c3a y Ocre Dorado #F2A65A).
    ========================================================================== */
 
+/* Logo principal sin bordes blancos ni texto acompañante */
+.hero-mascot-card {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.hero-mascot-label {
+  display: none !important;
+}
+
+.hero-mascot-img {
+  width: 230px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  border-radius: var(--radius-lg);
+  transition: var(--transition);
+}
+
+.hero-mascot-img:hover {
+  transform: translateY(-4px) scale(1.03);
+}
+
+@media (max-width: 900px) {
+  .hero-mascot-img {
+    width: 175px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-mascot-img {
+    width: 140px;
+  }
+}
+
+/* Animación continua (2.6s) de brillo y tonalidades de verde en el título "Irenic" */
+@keyframes irenicGreenShine {
+  0% {
+    background-position: 0% 50%;
+    filter: drop-shadow(0 0 2px rgba(51, 140, 48, 0.15));
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: drop-shadow(0 0 11px rgba(74, 222, 128, 0.55));
+  }
+  100% {
+    background-position: 0% 50%;
+    filter: drop-shadow(0 0 2px rgba(51, 140, 48, 0.15));
+  }
+}
+
+.hero-headline .highlight-green {
+  background: linear-gradient(
+    110deg,
+    #1a4718 0%,
+    #338c30 28%,
+    #4ade80 50%,
+    #22c55e 72%,
+    #1a4718 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--color-verde-inst);
+  animation: irenicGreenShine 2.6s ease-in-out infinite;
+}
+
 .header-nav-group {
   display: flex;
   align-items: safe center;

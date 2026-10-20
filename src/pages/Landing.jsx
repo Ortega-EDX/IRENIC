@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import usePageMeta from '../hooks/usePageMeta.js';
+import '../styles/pages.css';
 
 const ASSETS = `${import.meta.env.BASE_URL}assets/`;
 
@@ -18,8 +19,8 @@ export default function Landing() {
       <header className="header-landing">
         <div className="header-inner">
           <Link to="/" className="brand-box">
-            {/* Logo Oficial del Robot IRENIC */}
-            <img src={`${ASSETS}logo.webp`} alt="Logo IRENIC - Colegio San Alberto Magno" className="brand-logo-img" />
+            {/* Logo Simplificado del Robot IRENIC para tamaños pequeños */}
+            <img src={`${ASSETS}logo-simple.jpg`} alt="Logo IRENIC - Colegio San Alberto Magno" className="brand-logo-img" />
 
             <div className="brand-names">
               <div className="brand-title">
@@ -88,10 +89,7 @@ export default function Landing() {
             </div>
 
             <div className="hero-mascot-col">
-              <div className="hero-mascot-card">
-                <img src={`${ASSETS}logo.webp`} alt="Irenic - Asistente de Convivencia Escolar" className="hero-mascot-img" />
-                <div className="hero-mascot-label">IRENIC • Asistente de Convivencia</div>
-              </div>
+              <img src={`${ASSETS}logo.webp`} alt="Irenic - Asistente de Convivencia Escolar" className="hero-mascot-img" />
             </div>
           </div>
         </section>
