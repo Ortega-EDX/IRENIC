@@ -44,7 +44,7 @@ export default function Faqs() {
     {
       question: '6. ¿Con qué frecuencia se puede utilizar el chatbot?',
       answer:
-        'Sin restricciones. Puede utilizarse las veces que la persona lo requiera, cualquier día de la semana y a cualquier hora.'
+        'Está disponible cualquier día de la semana y a cualquier hora para consultas educativas legítimas, contando con un sistema automático de protección anti-spam y moderación para asegurar que el servicio permanezca fluido para toda la comunidad escolar.'
     },
     {
       question: '7. ¿Se necesita un programa o equipo especial para usar IRENIC?',

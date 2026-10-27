@@ -8,7 +8,7 @@ export default function Landing() {
   usePageMeta({
     title: 'IRENIC | Asistente de Convivencia - Colegio San Alberto Magno (COLSAM)',
     description:
-      'Conoce a Irenic, el asistente virtual con inteligencia artificial para estudiantes sobre el Manual de Convivencia del Colegio San Alberto Magno.',
+      'Conoce a Irenic, el asistente virtual con modelo de chatbot para estudiantes sobre el Manual de Convivencia del Colegio San Alberto Magno.',
   });
 
   return (

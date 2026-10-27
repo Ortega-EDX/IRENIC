@@ -3,10 +3,20 @@ import { Link } from 'react-router-dom';
 import usePageMeta from '../hooks/usePageMeta.js';
 import Toast from '../components/Toast.jsx';
 import FormattedMessage from '../components/FormattedMessage.jsx';
-import { consultarManual, IrenicModelError } from '../services/gemini.js';
+import {
+  consultarManual,
+  IrenicModelError,
+  MENSAJE_RECHAZO_NORMATIVO,
+  obtenerClientId,
+  obtenerEstadoBloqueoLocal,
+  formatearTiempoEspera,
+} from '../services/gemini.js';
 import '../styles/chat-messages.css';
 
 const ASSETS = `${import.meta.env.BASE_URL}assets/`;
+
+/** Enfriamiento (cooldown) de 3 segundos entre el envío de un mensaje y el siguiente */
+const COOLDOWN_ENVIO_MS = 3000;
 
 /** Límite ligero (3.5 MB) para procesar imágenes y PDFs rápido y sin errores en Serverless */
 const MAX_ADJUNTO_BYTES = 3.5 * 1024 * 1024;
@@ -203,6 +213,9 @@ export default function Chat() {
   const [menuArchivosAbierto, setMenuArchivosAbierto] = useState(false);
   const [leyendoId, setLeyendoId] = useState(null);
   const [escuchandoVoz, setEscuchandoVoz] = useState(false);
+  const [cooldownHasta, setCooldownHasta] = useState(0);
+  const [bloqueadoHasta, setBloqueadoHasta] = useState(() => obtenerEstadoBloqueoLocal().blockedUntil || 0);
+  const [ahoraTick, setAhoraTick] = useState(() => Date.now());
   const [toast, setToast] = useState({ message: '', show: false });
 
   const toastTimer = useRef(null);
@@ -221,8 +234,41 @@ export default function Chat() {
   const showToastGreen = useCallback((message) => {
     setToast({ message, show: true });
     clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast((t) => ({ ...t, show: false })), 3000);
+    toastTimer.current = setTimeout(() => setToast((t) => ({ ...t, show: false })), 3500);
   }, []);
+
+  // Asegura la inicialización del clientId persistente en localStorage al cargar
+  useEffect(() => {
+    obtenerClientId();
+    const estadoInicial = obtenerEstadoBloqueoLocal();
+    if (estadoInicial.bloqueado) {
+      setBloqueadoHasta(estadoInicial.blockedUntil);
+    }
+  }, []);
+
+  // Reloj reactivo para actualizar la cuenta regresiva de cooldown (3s) o bloqueo por spam
+  useEffect(() => {
+    const ahora = Date.now();
+    if (cooldownHasta <= ahora && bloqueadoHasta <= ahora) return undefined;
+
+    const intervalo = setInterval(() => {
+      const actual = Date.now();
+      setAhoraTick(actual);
+      if (cooldownHasta > 0 && actual >= cooldownHasta) {
+        setCooldownHasta(0);
+      }
+      if (bloqueadoHasta > 0 && actual >= bloqueadoHasta) {
+        setBloqueadoHasta(0);
+      }
+    }, 300);
+
+    return () => clearInterval(intervalo);
+  }, [cooldownHasta, bloqueadoHasta]);
+
+  const estaEnCooldown = cooldownHasta > ahoraTick;
+  const segundosCooldown = estaEnCooldown ? Math.max(1, Math.ceil((cooldownHasta - ahoraTick) / 1000)) : 0;
+  const estaBloqueadoSpam = bloqueadoHasta > ahoraTick;
+  const textoTiempoBloqueo = estaBloqueadoSpam ? formatearTiempoEspera(bloqueadoHasta - ahoraTick) : '';
 
   /** Detiene cualquier lectura en voz alta activa */
   const detenerLectura = useCallback(() => {
@@ -417,6 +463,23 @@ export default function Chat() {
       const texto = (textoCrudo || '').trim();
       if ((!texto && !adjuntoActual) || loading) return;
 
+      // 1. Verificar si hay bloqueo activo por spam en localStorage
+      const estadoSpam = obtenerEstadoBloqueoLocal();
+      if (estadoSpam.bloqueado) {
+        setBloqueadoHasta(estadoSpam.blockedUntil);
+        setAhoraTick(Date.now());
+        showToastGreen(estadoSpam.mensaje);
+        return;
+      }
+
+      // 2. Verificar enfriamiento (cooldown) de 3 segundos entre mensajes
+      const ahora = Date.now();
+      if (cooldownHasta > ahora) {
+        const segRestantes = Math.max(1, Math.ceil((cooldownHasta - ahora) / 1000));
+        showToastGreen(`Por favor espera ${segRestantes}s antes de enviar otro mensaje.`);
+        return;
+      }
+
       detenerDictadoVoz();
       detenerLectura();
 
@@ -450,13 +513,34 @@ export default function Chat() {
             : null,
           signal: controlador.signal,
         });
-        setMessages((prev) => [...prev, { id: `b-${Date.now()}`, rol: 'bot', texto: respuesta }]);
+
+        const fueRechazadoPorNormas = respuesta === MENSAJE_RECHAZO_NORMATIVO;
+        if (fueRechazadoPorNormas) {
+          showToastGreen('Mensaje bloqueado: infringe las normas de uso y Términos de IRENIC.');
+        }
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `b-${Date.now()}`,
+            rol: 'bot',
+            esError: fueRechazadoPorNormas,
+            texto: respuesta,
+          },
+        ]);
       } catch (e) {
         if (e?.name === 'AbortError') return; // consulta reiniciada o página cerrada
+        if (e instanceof IrenicModelError && e.code === 'RATE_LIMITED') {
+          if (e.blockedUntil) {
+            setBloqueadoHasta(e.blockedUntil);
+            setAhoraTick(Date.now());
+          }
+          showToastGreen(e.message);
+        }
         const textoError =
           e instanceof IrenicModelError
             ? e.message
-            : 'No se pudo conectar con el modelo de IRENIC. Inténtalo de nuevo.';
+            : 'No se pudo conectar con el modelo de chatbot de IRENIC. Inténtalo de nuevo.';
         setMessages((prev) => [
           ...prev,
           { id: `e-${Date.now()}`, rol: 'bot', esError: true, texto: textoError },
@@ -465,10 +549,13 @@ export default function Chat() {
         if (abortRef.current === controlador) {
           abortRef.current = null;
           setLoading(false);
+          const finEnvio = Date.now();
+          setAhoraTick(finEnvio);
+          setCooldownHasta(finEnvio + COOLDOWN_ENVIO_MS);
         }
       }
     },
-    [loading, detenerDictadoVoz, detenerLectura]
+    [loading, cooldownHasta, detenerDictadoVoz, detenerLectura, showToastGreen]
   );
 
   const handleSubmit = (e) => {
@@ -603,7 +690,7 @@ export default function Chat() {
             <button
               key={chip.label}
               className="chip-btn"
-              disabled={loading}
+              disabled={loading || estaEnCooldown || estaBloqueadoSpam}
               onClick={() => enviarConsulta(chip.prompt)}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -723,7 +810,7 @@ export default function Chat() {
                 <button
                   type="button"
                   className={`irenic-icon-btn${menuArchivosAbierto ? ' active' : ''}`}
-                  disabled={loading}
+                  disabled={loading || estaBloqueadoSpam}
                   onClick={() => {
                     if (archivosSubidos.length === 0) {
                       archivoRef.current?.click();
@@ -821,13 +908,15 @@ export default function Chat() {
                 className="irenic-chat-input"
                 rows={1}
                 value={input}
-                disabled={loading}
+                disabled={loading || estaBloqueadoSpam}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={
-                  escuchandoVoz
-                    ? 'Escuchando tu voz... habla ahora y luego presiona Enviar'
-                    : 'Describe tu situación o adjunta un documento según el Manual de Convivencia...'
+                  estaBloqueadoSpam
+                    ? `Envío bloqueado temporalmente por spam (${textoTiempoBloqueo} restantes)...`
+                    : escuchandoVoz
+                      ? 'Escuchando tu voz... habla ahora y luego presiona Enviar'
+                      : 'Describe tu situación o adjunta un documento según el Manual de Convivencia...'
                 }
                 aria-label="Escribe tu consulta"
               />
@@ -836,7 +925,7 @@ export default function Chat() {
               <button
                 type="button"
                 className={`irenic-icon-btn irenic-mic-btn${escuchandoVoz ? ' listening' : ''}`}
-                disabled={loading}
+                disabled={loading || estaBloqueadoSpam}
                 onClick={alternarDictadoVoz}
                 title={
                   escuchandoVoz
@@ -857,9 +946,16 @@ export default function Chat() {
               <button
                 type="submit"
                 className="irenic-send-btn"
-                disabled={loading || (!input.trim() && !adjunto)}
+                disabled={loading || estaEnCooldown || estaBloqueadoSpam || (!input.trim() && !adjunto)}
+                title={
+                  estaBloqueadoSpam
+                    ? `Acceso bloqueado temporalmente (${textoTiempoBloqueo})`
+                    : estaEnCooldown
+                      ? `Espera ${segundosCooldown}s para enviar otro mensaje`
+                      : 'Enviar consulta'
+                }
               >
-                <span>Enviar</span>
+                <span>{estaEnCooldown ? `${segundosCooldown}s` : 'Enviar'}</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="22" y1="2" x2="11" y2="13"></line>
                   <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>

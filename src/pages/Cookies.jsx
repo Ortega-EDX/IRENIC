@@ -41,7 +41,7 @@ export default function Cookies() {
         </p>
         <ul style={{ paddingLeft: '1.5rem', margin: '0.5rem 0' }}>
           <li><strong>Cookies Esenciales y Técnicas:</strong> Permiten mantener la fluidez en el envío y recepción de mensajes durante la sesión activa en el chatbot.</li>
-          <li><strong>Almacenamiento de Preferencias:</strong> Guarda temporalmente tus ajustes visuales o el historial reciente de preguntas para facilitar tu navegación.</li>
+          <li><strong>Almacenamiento Técnico y Control Anti-Spam:</strong> Guarda un identificador técnico anónimo (<code>clientId</code>) y marcas de tiempo locales exclusivamente para proteger el modelo de chatbot contra el envío masivo de mensajes (spam), sin identificar personalmente al estudiante.</li>
           <li><strong>Sin rastreo comercial ni publicidad:</strong> IRENIC <strong>NO</strong> utiliza cookies de terceros, píxeles publicitarios ni herramientas de rastreo comercial.</li>
         </ul>
 
