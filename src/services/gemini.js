@@ -303,6 +303,44 @@ export class IrenicModelError extends Error {
 export { IrenicModelError as GeminiError };
 
 /**
+ * Filtra el historial en el cliente para enviar únicamente el último turno válido
+ * (1 pregunta previa válida + 1 respuesta previa válida), reduciendo el tamaño de la
+ * petición y evitando ataques de manipulación de múltiples turnos (Opción A).
+ */
+function extraerUltimoTurnoValido(historial = []) {
+  const lista = Array.isArray(historial) ? historial : [];
+  let ultimoPar = [];
+
+  for (let i = 0; i < lista.length - 1; i += 1) {
+    const msgU = lista[i];
+    const msgB = lista[i + 1];
+    if (!msgU || !msgB) continue;
+    if (msgU.rol !== 'usuario' || msgB.rol !== 'bot') continue;
+    if (msgU.esBienvenida || msgU.esError || msgU.esBloqueado || msgB.esBienvenida || msgB.esError || msgB.esBloqueado) {
+      continue;
+    }
+    const tU = String(msgU.texto || '').trim();
+    const tB = String(msgB.texto || '').trim();
+    if (
+      !tU ||
+      !tB ||
+      tU === MENSAJE_RECHAZO_NORMATIVO ||
+      tB === MENSAJE_RECHAZO_NORMATIVO ||
+      contieneInfraccionLocal(tU, false) ||
+      contieneInfraccionLocal(tB, true)
+    ) {
+      continue;
+    }
+    ultimoPar = [
+      { rol: 'usuario', texto: tU },
+      { rol: 'bot', texto: tB },
+    ];
+  }
+
+  return ultimoPar;
+}
+
+/**
  * Envía la consulta del estudiante al proxy serverless `/api/chat`.
  * @param {Object}   params
  * @param {Array}    params.historial  Mensajes previos [{rol:'usuario'|'bot', texto}]
@@ -326,6 +364,7 @@ export async function consultarManual({ historial = [], mensaje, adjunto, signal
     return MENSAJE_RECHAZO_NORMATIVO;
   }
 
+  const historialUnTurno = extraerUltimoTurnoValido(historial);
   const clientId = obtenerClientId();
   const controlador = new AbortController();
   const temporizador = setTimeout(() => controlador.abort(), TIMEOUT_MS);
@@ -341,7 +380,7 @@ export async function consultarManual({ historial = [], mensaje, adjunto, signal
           'Content-Type': 'application/json',
           'x-client-id': clientId,
         },
-        body: JSON.stringify({ historial, mensaje, adjunto, clientId }),
+        body: JSON.stringify({ historial: historialUnTurno, mensaje, adjunto, clientId }),
         signal: controlador.signal,
       });
     } catch (e) {
