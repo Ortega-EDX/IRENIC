@@ -132,6 +132,55 @@
   font-weight: 700;
 }
 
+/* Pie de burbuja del bot: Botón de lectura por voz */
+.irenic-msg-footer {
+  margin-top: 0.65rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--color-gris-platino-soft);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.irenic-speak-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.7rem;
+  border-radius: var(--radius-full);
+  background: var(--color-verde-subtle);
+  color: var(--color-verde-dark);
+  border: 1px solid var(--border-verde);
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.irenic-speak-btn svg {
+  color: var(--color-verde-inst);
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.irenic-speak-btn:hover {
+  background: #d3e8d1;
+  border-color: var(--color-verde-inst);
+  color: var(--color-verde-dark);
+}
+
+.irenic-speak-btn.active {
+  background: var(--color-verde-inst);
+  border-color: var(--color-verde-inst);
+  color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(51, 140, 48, 0.2);
+}
+
+.irenic-speak-btn.active svg {
+  color: #ffffff;
+}
+
 /* Estado de carga mientras se consulta el Manual */
 .irenic-typing {
   display: inline-flex;
@@ -215,14 +264,32 @@
   width: 44px;
   position: relative;
   background: #ffffff;
-  color: var(--color-verde-dark);
-  border: 1.5px solid var(--color-gris-platino);
+  color: var(--color-verde-inst);
+  border: 1.5px solid var(--border-verde);
 }
 
 .irenic-icon-btn:hover:not(:disabled),
 .irenic-icon-btn.active {
   background: var(--color-verde-subtle);
   border-color: var(--color-verde-inst);
+  color: var(--color-verde-dark);
+}
+
+/* Estado activo del botón de micrófono mientras escucha y transcribe */
+.irenic-mic-btn.listening {
+  background: var(--color-verde-inst);
+  border-color: var(--color-verde-inst);
+  color: #ffffff;
+  animation: irenicMicPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes irenicMicPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(51, 140, 48, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(51, 140, 48, 0);
+  }
 }
 
 .irenic-clip-badge {

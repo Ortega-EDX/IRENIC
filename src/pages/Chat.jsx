@@ -98,6 +98,54 @@ function formatearTamano(bytes = 0) {
   return `${(kb / 1024).toFixed(2)} MB`;
 }
 
+/** Limpia marcas de Markdown para que la lectura por voz suene natural */
+function limpiarTextoParaLectura(markdown = '') {
+  return String(markdown)
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/^[-*•]\s+/gm, '')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\n{2,}/g, '. ')
+    .replace(/\n/g, '. ')
+    .replace(/\.\s*\./g, '.')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+/** Divide un texto largo en fragmentos por oraciones para evitar cortes en navegadores móviles/escritorio */
+function dividirEnFragmentosDeVoz(textoLimpio, maxLen = 220) {
+  const oraciones = textoLimpio.split(/(?<=[.!?])\s+/);
+  const fragmentos = [];
+  let actual = '';
+
+  for (const oracion of oraciones) {
+    if (!oracion) continue;
+    if ((actual + ' ' + oracion).trim().length <= maxLen) {
+      actual = (actual ? `${actual} ${oracion}` : oracion).trim();
+    } else {
+      if (actual) fragmentos.push(actual);
+      if (oracion.length <= maxLen) {
+        actual = oracion.trim();
+      } else {
+        // Si una oración individual es muy larga, dividir por comas o palabras
+        const partes = oracion.split(/,\s+/);
+        actual = '';
+        for (const parte of partes) {
+          if ((actual + ', ' + parte).trim().length <= maxLen) {
+            actual = (actual ? `${actual}, ${parte}` : parte).trim();
+          } else {
+            if (actual) fragmentos.push(actual);
+            actual = parte.trim();
+          }
+        }
+      }
+    }
+  }
+  if (actual) fragmentos.push(actual);
+  return fragmentos.length > 0 ? fragmentos : [textoLimpio];
+}
+
 /** Convierte un File en {id, nombre, mimeType, size, base64} */
 function leerArchivo(file) {
   return new Promise((resolve, reject) => {
@@ -153,6 +201,8 @@ export default function Chat() {
   const [adjunto, setAdjunto] = useState(null);
   const [archivosSubidos, setArchivosSubidos] = useState([]);
   const [menuArchivosAbierto, setMenuArchivosAbierto] = useState(false);
+  const [leyendoId, setLeyendoId] = useState(null);
+  const [escuchandoVoz, setEscuchandoVoz] = useState(false);
   const [toast, setToast] = useState({ message: '', show: false });
 
   const toastTimer = useRef(null);
@@ -161,6 +211,9 @@ export default function Chat() {
   const inputRef = useRef(null);
   const archivoRef = useRef(null);
   const menuRef = useRef(null);
+  const lecturaTokenRef = useRef(0);
+  const reconocimientoRef = useRef(null);
+  const textoBaseVozRef = useRef('');
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
 
@@ -170,6 +223,157 @@ export default function Chat() {
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast((t) => ({ ...t, show: false })), 3000);
   }, []);
+
+  /** Detiene cualquier lectura en voz alta activa */
+  const detenerLectura = useCallback(() => {
+    lecturaTokenRef.current += 1;
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setLeyendoId(null);
+  }, []);
+
+  /** Lee en voz alta la respuesta del chatbot o la detiene si ya está reproduciéndose */
+  const alternarLecturaMensaje = useCallback(
+    (mensajeObj) => {
+      if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+        showToastGreen('Tu navegador no admite lectura en voz alta.');
+        return;
+      }
+
+      if (leyendoId === mensajeObj.id) {
+        detenerLectura();
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      const tokenActual = lecturaTokenRef.current + 1;
+      lecturaTokenRef.current = tokenActual;
+
+      const textoLimpio = limpiarTextoParaLectura(mensajeObj.texto);
+      if (!textoLimpio) return;
+
+      const fragmentos = dividirEnFragmentosDeVoz(textoLimpio);
+      const voces = window.speechSynthesis.getVoices() || [];
+      const vozEspanol =
+        voces.find((v) => /es[-_](CO|419|MX|US)/i.test(v.lang) && /natural|google|online/i.test(v.name)) ||
+        voces.find((v) => /es[-_](CO|419|MX|US)/i.test(v.lang)) ||
+        voces.find((v) => /^es/i.test(v.lang)) ||
+        null;
+
+      setLeyendoId(mensajeObj.id);
+
+      const hablarFragmento = (indice) => {
+        if (lecturaTokenRef.current !== tokenActual) return;
+        if (indice >= fragmentos.length) {
+          setLeyendoId(null);
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(fragmentos[indice]);
+        utterance.lang = vozEspanol?.lang || 'es-CO';
+        if (vozEspanol) utterance.voice = vozEspanol;
+        utterance.rate = 1.02;
+        utterance.pitch = 1.0;
+
+        utterance.onend = () => {
+          if (lecturaTokenRef.current === tokenActual) {
+            hablarFragmento(indice + 1);
+          }
+        };
+
+        utterance.onerror = () => {
+          if (lecturaTokenRef.current === tokenActual) {
+            setLeyendoId(null);
+          }
+        };
+
+        window.speechSynthesis.speak(utterance);
+      };
+
+      hablarFragmento(0);
+    },
+    [leyendoId, detenerLectura, showToastGreen]
+  );
+
+  /** Detiene el reconocimiento de voz del micrófono */
+  const detenerDictadoVoz = useCallback(() => {
+    if (reconocimientoRef.current) {
+      try {
+        reconocimientoRef.current.onend = null;
+        reconocimientoRef.current.stop();
+      } catch (_) {
+        // ignorar si ya se detuvo
+      }
+      reconocimientoRef.current = null;
+    }
+    setEscuchandoVoz(false);
+  }, []);
+
+  /** Activa o desactiva la transcripción de voz a texto con el micrófono */
+  const alternarDictadoVoz = useCallback(() => {
+    if (escuchandoVoz) {
+      detenerDictadoVoz();
+      return;
+    }
+
+    const SpeechRecognitionAPI =
+      typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
+
+    if (!SpeechRecognitionAPI) {
+      showToastGreen('Tu navegador no admite dictado directo. Usa Chrome, Edge o Safari.');
+      return;
+    }
+
+    // Si el chatbot estaba leyendo en voz alta, lo silenciamos para no interferir con el micrófono
+    detenerLectura();
+
+    try {
+      const recognition = new SpeechRecognitionAPI();
+      recognition.lang = 'es-CO';
+      recognition.interimResults = true;
+      recognition.continuous = false;
+      recognition.maxAlternatives = 1;
+
+      const textoActual = inputRef.current?.value || input || '';
+      textoBaseVozRef.current = textoActual.trim() ? `${textoActual.trim()} ` : '';
+
+      recognition.onstart = () => {
+        setEscuchandoVoz(true);
+      };
+
+      recognition.onresult = (event) => {
+        let transcripcion = '';
+        for (let i = 0; i < event.results.length; i += 1) {
+          transcripcion += event.results[i][0].transcript;
+        }
+        const textoCombinado = `${textoBaseVozRef.current}${transcripcion.trim()}`;
+        setInput(textoCombinado);
+      };
+
+      recognition.onerror = (event) => {
+        setEscuchandoVoz(false);
+        reconocimientoRef.current = null;
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          showToastGreen('Permite el acceso al micrófono en tu navegador para dictar por voz.');
+        } else if (event.error === 'no-speech') {
+          showToastGreen('No se detectó voz. Toca el micrófono e inténtalo de nuevo.');
+        }
+      };
+
+      recognition.onend = () => {
+        setEscuchandoVoz(false);
+        reconocimientoRef.current = null;
+        inputRef.current?.focus();
+      };
+
+      reconocimientoRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      setEscuchandoVoz(false);
+      showToastGreen('No se pudo iniciar el micrófono. Inténtalo de nuevo.');
+    }
+  }, [escuchandoVoz, input, detenerDictadoVoz, detenerLectura, showToastGreen]);
 
   // Desplazamiento automático al último mensaje
   useEffect(() => {
@@ -196,13 +400,15 @@ export default function Chat() {
     return () => document.removeEventListener('mousedown', handleClickFuera);
   }, [menuArchivosAbierto]);
 
-  // Cancela cualquier solicitud pendiente al salir de la página
+  // Cancela cualquier solicitud pendiente, lectura o dictado al salir de la página
   useEffect(
     () => () => {
       abortRef.current?.abort();
       clearTimeout(toastTimer.current);
+      detenerLectura();
+      detenerDictadoVoz();
     },
-    []
+    [detenerLectura, detenerDictadoVoz]
   );
 
   /** Envía una consulta al motor normativo y agrega la respuesta al chat */
@@ -210,6 +416,9 @@ export default function Chat() {
     async (textoCrudo, adjuntoActual = null) => {
       const texto = (textoCrudo || '').trim();
       if ((!texto && !adjuntoActual) || loading) return;
+
+      detenerDictadoVoz();
+      detenerLectura();
 
       const mensaje = texto || 'Analiza este archivo adjunto conforme al Manual de Convivencia.';
       const historial = messagesRef.current;
@@ -259,7 +468,7 @@ export default function Chat() {
         }
       }
     },
-    [loading]
+    [loading, detenerDictadoVoz, detenerLectura]
   );
 
   const handleSubmit = (e) => {
@@ -314,6 +523,8 @@ export default function Chat() {
   const handleNuevaConsulta = () => {
     abortRef.current?.abort();
     abortRef.current = null;
+    detenerLectura();
+    detenerDictadoVoz();
     setLoading(false);
     setMessages([MENSAJE_BIENVENIDA]);
     setInput('');
@@ -408,20 +619,55 @@ export default function Chat() {
           {/* Mensajes */}
           <div className="irenic-chat-messages" role="log" aria-live="polite">
             <div className="irenic-chat-messages-inner">
-              {messages.map((m) => (
-                <div key={m.id} className={`irenic-msg-row ${m.rol}${m.esError ? ' error' : ''}`}>
-                  {m.rol === 'bot' && <img src={`${ASSETS}logo-simple.jpg`} alt="" className="irenic-msg-avatar" />}
-                  <div className="irenic-msg-bubble">
-                    {m.adjuntoNombre && (
-                      <div className="irenic-msg-attachment">
-                        <IconoTipoArchivo mimeType={m.adjuntoMime} size={14} />
-                        <span>{m.adjuntoNombre}</span>
-                      </div>
-                    )}
-                    {m.rol === 'bot' ? <FormattedMessage texto={m.texto} /> : m.texto}
+              {messages.map((m) => {
+                const estaLeyendo = leyendoId === m.id;
+                return (
+                  <div key={m.id} className={`irenic-msg-row ${m.rol}${m.esError ? ' error' : ''}`}>
+                    {m.rol === 'bot' && <img src={`${ASSETS}logo-simple.jpg`} alt="" className="irenic-msg-avatar" />}
+                    <div className="irenic-msg-bubble">
+                      {m.adjuntoNombre && (
+                        <div className="irenic-msg-attachment">
+                          <IconoTipoArchivo mimeType={m.adjuntoMime} size={14} />
+                          <span>{m.adjuntoNombre}</span>
+                        </div>
+                      )}
+                      {m.rol === 'bot' ? <FormattedMessage texto={m.texto} /> : m.texto}
+
+                      {/* Opción añadida: Botón de lectura por voz para las respuestas del chatbot */}
+                      {m.rol === 'bot' && !m.esError && (
+                        <div className="irenic-msg-footer">
+                          <button
+                            type="button"
+                            className={`irenic-speak-btn${estaLeyendo ? ' active' : ''}`}
+                            onClick={() => alternarLecturaMensaje(m)}
+                            title={estaLeyendo ? 'Detener la lectura en voz alta' : 'Escuchar la respuesta del chatbot'}
+                            aria-label={estaLeyendo ? 'Detener lectura' : 'Escuchar respuesta'}
+                            aria-pressed={estaLeyendo}
+                          >
+                            {estaLeyendo ? (
+                              <>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"></rect>
+                                </svg>
+                                <span>Detener lectura</span>
+                              </>
+                            ) : (
+                              <>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                                </svg>
+                                <span>Escuchar respuesta</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {/* Estado de carga mientras se consulta el Manual */}
               {loading && (
@@ -578,9 +824,35 @@ export default function Chat() {
                 disabled={loading}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Describe tu situación o adjunta un documento según el Manual de Convivencia..."
+                placeholder={
+                  escuchandoVoz
+                    ? 'Escuchando tu voz... habla ahora y luego presiona Enviar'
+                    : 'Describe tu situación o adjunta un documento según el Manual de Convivencia...'
+                }
                 aria-label="Escribe tu consulta"
               />
+
+              {/* Botón de Micrófono para transcribir voz a texto */}
+              <button
+                type="button"
+                className={`irenic-icon-btn irenic-mic-btn${escuchandoVoz ? ' listening' : ''}`}
+                disabled={loading}
+                onClick={alternarDictadoVoz}
+                title={
+                  escuchandoVoz
+                    ? 'Detener micrófono (el texto quedará listo para enviar)'
+                    : 'Dictar mensaje con el micrófono'
+                }
+                aria-label={escuchandoVoz ? 'Detener dictado por voz' : 'Dictar mensaje por voz'}
+                aria-pressed={escuchandoVoz}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                  <line x1="12" y1="19" x2="12" y2="23"></line>
+                  <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+              </button>
 
               <button
                 type="submit"
