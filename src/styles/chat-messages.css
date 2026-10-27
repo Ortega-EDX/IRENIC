@@ -132,7 +132,7 @@
   font-weight: 700;
 }
 
-/* Pie de burbuja del bot: Botón de lectura por voz */
+/* Pie de burbuja del bot: Botón de lectura por voz y Pin para citar respuesta */
 .irenic-msg-footer {
   margin-top: 0.65rem;
   padding-top: 0.5rem;
@@ -140,9 +140,12 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
-.irenic-speak-btn {
+.irenic-speak-btn,
+.irenic-pin-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -158,26 +161,30 @@
   transition: var(--transition);
 }
 
-.irenic-speak-btn svg {
+.irenic-speak-btn svg,
+.irenic-pin-btn svg {
   color: var(--color-verde-inst);
   flex-shrink: 0;
   transition: var(--transition);
 }
 
-.irenic-speak-btn:hover {
+.irenic-speak-btn:hover,
+.irenic-pin-btn:hover {
   background: #d3e8d1;
   border-color: var(--color-verde-inst);
   color: var(--color-verde-dark);
 }
 
-.irenic-speak-btn.active {
+.irenic-speak-btn.active,
+.irenic-pin-btn.active {
   background: var(--color-verde-inst);
   border-color: var(--color-verde-inst);
   color: #ffffff;
   box-shadow: 0 0 0 3px rgba(51, 140, 48, 0.2);
 }
 
-.irenic-speak-btn.active svg {
+.irenic-speak-btn.active svg,
+.irenic-pin-btn.active svg {
   color: #ffffff;
 }
 
@@ -366,16 +373,17 @@
 }
 
 .irenic-attach-pill span {
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 260px;
 }
 
 .irenic-attach-pill-size {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 320px;
 }
 
 .irenic-attach-pill button {

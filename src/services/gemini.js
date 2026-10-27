@@ -424,11 +424,11 @@ function extraerUltimoTurnoValido(historial = []) {
  * @param {Object}   params
  * @param {Array}    params.historial  Mensajes previos [{rol:'usuario'|'bot', texto}]
  * @param {string}   params.mensaje    Consulta actual del estudiante
- * @param {Object=}  params.adjunto    {mimeType, base64} imagen o PDF opcional
+ * @param {string=}  params.citaBot    Respuesta previa de IRENIC citada por el usuario (máximo 1)
  * @param {AbortSignal=} params.signal Para cancelar la solicitud
  * @returns {Promise<string>} Respuesta normativa en Markdown
  */
-export async function consultarManual({ historial = [], mensaje, adjunto, signal }) {
+export async function consultarManual({ historial = [], mensaje, citaBot = '', signal }) {
   // 1. Verificar bloqueo anti-spam persistente en localStorage (cuenta todo intento de envío)
   const controlSpamLocal = verificarYRegistrarEnvioLocal();
   if (controlSpamLocal.bloqueado) {
@@ -447,6 +447,10 @@ export async function consultarManual({ historial = [], mensaje, adjunto, signal
   // se enmascara la palabra ofensiva antes de enviarla al servidor/modelo.
   const mensajeSanitizado = sanitizarGroseriasEnConsulta(mensaje);
   const historialUnTurno = extraerUltimoTurnoValido(historial);
+  const citaSegura =
+    typeof citaBot === 'string' && citaBot.trim() && !contieneInfraccionLocal(citaBot, true)
+      ? citaBot.trim()
+      : '';
   const clientId = obtenerClientId();
   const controlador = new AbortController();
   const temporizador = setTimeout(() => controlador.abort(), TIMEOUT_MS);
@@ -462,7 +466,12 @@ export async function consultarManual({ historial = [], mensaje, adjunto, signal
           'Content-Type': 'application/json',
           'x-client-id': clientId,
         },
-        body: JSON.stringify({ historial: historialUnTurno, mensaje: mensajeSanitizado, adjunto, clientId }),
+        body: JSON.stringify({
+          historial: historialUnTurno,
+          mensaje: mensajeSanitizado,
+          citaBot: citaSegura,
+          clientId,
+        }),
         signal: controlador.signal,
       });
     } catch (e) {

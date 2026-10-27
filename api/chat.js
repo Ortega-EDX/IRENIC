@@ -516,7 +516,7 @@ REGLAS DE ESTILO Y EXTENSIÓN PARA EL CAMPO "respuesta" CUANDO "es_seguro" ES tr
  * - Impide encadenar múltiples mensajes para confundir o vulnerar al modelo (Multi-turn Jailbreak).
  * - Filtra cualquier mensaje bloqueado, rechazado o con error para evitar contaminación de contexto.
  */
-function construirContenidos(historial = [], mensaje = '', adjunto = null) {
+function construirContenidos(historial = [], mensaje = '', citaBot = '') {
   const lista = Array.isArray(historial) ? historial : [];
   const paresValidos = [];
 
@@ -561,17 +561,16 @@ function construirContenidos(historial = [], mensaje = '', adjunto = null) {
   const ultimoPar = paresValidos.length > 0 ? paresValidos[paresValidos.length - 1].slice(0, MAX_TURNOS_HISTORIAL) : [];
 
   const mensajeSanitizado = sanitizarGroseriasEnConsulta(String(mensaje || '').trim());
-  const partesActual = [{ text: mensajeSanitizado }];
-  if (adjunto && adjunto.mimeType && adjunto.base64) {
-    partesActual.push({
-      inlineData: {
-        mimeType: String(adjunto.mimeType),
-        data: String(adjunto.base64),
-      },
-    });
-  }
+  const citaLimpia = typeof citaBot === 'string' ? citaBot.trim() : '';
 
-  return [...ultimoPar, { role: 'user', parts: partesActual }];
+  // Si el estudiante citó con el Pin una respuesta previa de IRENIC (validada por Capa 1),
+  // se incluye como referencia explícita en su consulta actual.
+  const textoFinalUsuario =
+    citaLimpia && citaLimpia !== MENSAJE_RECHAZO_NORMATIVO && !contieneInfraccionLocal(citaLimpia, true)
+      ? `[Respuesta anterior de IRENIC citada como contexto]:\n"${citaLimpia}"\n\n[Consulta actual del estudiante sobre esa respuesta]:\n${mensajeSanitizado}`
+      : mensajeSanitizado;
+
+  return [...ultimoPar, { role: 'user', parts: [{ text: textoFinalUsuario }] }];
 }
 
 /**
@@ -666,7 +665,7 @@ async function leerBodyJson(req) {
     let raw = '';
     req.on('data', (chunk) => {
       raw += chunk;
-      if (raw.length > 12 * 1024 * 1024) {
+      if (raw.length > 256 * 1024) {
         reject(new Error('PAYLOAD_TOO_LARGE'));
       }
     });
@@ -708,13 +707,13 @@ export default async function handler(req, res) {
     });
   }
 
-  const { historial = [], mensaje = '', adjunto = null, clientId: bodyClientId = '' } = body || {};
+  const { historial = [], mensaje = '', citaBot = '', clientId: bodyClientId = '' } = body || {};
   const textoMensaje = String(mensaje || '').trim();
 
-  if (!textoMensaje && !adjunto) {
+  if (!textoMensaje) {
     return enviarJson(res, 400, {
       code: 'EMPTY_QUERY',
-      error: 'Debes enviar un mensaje o documento para analizar.',
+      error: 'Debes escribir un mensaje para realizar la consulta.',
     });
   }
 
@@ -765,7 +764,7 @@ export default async function handler(req, res) {
   // ==========================================================================
   const payloadModelo = {
     system_instruction: { parts: [{ text: construirInstruccionSistema() }] },
-    contents: construirContenidos(historial, textoMensaje, adjunto),
+    contents: construirContenidos(historial, textoMensaje, citaBot),
     safetySettings: SAFETY_SETTINGS_ESTRICTOS,
     generationConfig: {
       temperature: TEMPERATURE,

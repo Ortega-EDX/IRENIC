@@ -18,17 +18,13 @@ const ASSETS = `${import.meta.env.BASE_URL}assets/`;
 /** Enfriamiento corto anti-doble-clic (800ms) que permite que el detector Anti-Spam actúe si envían 5 mensajes seguidos */
 const COOLDOWN_ENVIO_MS = 800;
 
-/** Límite ligero (3.5 MB) para procesar imágenes y PDFs rápido y sin errores en Serverless */
-const MAX_ADJUNTO_BYTES = 3.5 * 1024 * 1024;
-const TIPOS_ADJUNTO = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
-
 const MENSAJE_BIENVENIDA = {
   id: 'bienvenida',
   rol: 'bot',
   esBienvenida: true,
   texto: [
     '## Motor Normativo del Manual de Convivencia',
-    'Describe tu situación, plantea un caso o adjunta un archivo (imagen o PDF ligero) y lo analizaré bajo el Manual de Convivencia del Colegio San Alberto Magno.',
+    'Describe tu situación por escrito o mediante el micrófono de voz y la analizaré bajo el Manual de Convivencia del Colegio San Alberto Magno.',
     'Para cada consulta identificaré:',
     '- **Hechos** relevantes del caso.',
     '- **Tipificación** de la falta (Tipo I, II o III).',
@@ -101,13 +97,6 @@ const CHIPS = [
   },
 ];
 
-function formatearTamano(bytes = 0) {
-  if (bytes < 1024) return `${bytes} B`;
-  const kb = bytes / 1024;
-  if (kb < 1024) return `${kb.toFixed(1)} KB`;
-  return `${(kb / 1024).toFixed(2)} MB`;
-}
-
 /** Limpia marcas de Markdown para que la lectura por voz suene natural */
 function limpiarTextoParaLectura(markdown = '') {
   return String(markdown)
@@ -121,6 +110,32 @@ function limpiarTextoParaLectura(markdown = '') {
     .replace(/\.\s*\./g, '.')
     .replace(/\s{2,}/g, ' ')
     .trim();
+}
+
+/** Genera un resumen corto de la respuesta del chatbot para mostrar en la vista previa de cita */
+function resumirTextoCita(markdown = '', maxLen = 65) {
+  const limpio = limpiarTextoParaLectura(markdown);
+  if (limpio.length <= maxLen) return limpio;
+  return `${limpio.slice(0, maxLen).trim()}...`;
+}
+
+/** Icono SVG de Pin (chincheta) para citar una respuesta del chatbot */
+function IconoPin({ size = 14, relleno = false }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill={relleno ? 'currentColor' : 'none'}
+      stroke="currentColor"
+      strokeWidth="2.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="12" y1="17" x2="12" y2="22"></line>
+      <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
+    </svg>
+  );
 }
 
 /** Divide un texto largo en fragmentos por oraciones para evitar cortes en navegadores móviles/escritorio */
@@ -156,47 +171,6 @@ function dividirEnFragmentosDeVoz(textoLimpio, maxLen = 220) {
   return fragmentos.length > 0 ? fragmentos : [textoLimpio];
 }
 
-/** Convierte un File en {id, nombre, mimeType, size, base64} */
-function leerArchivo(file) {
-  return new Promise((resolve, reject) => {
-    const lector = new FileReader();
-    lector.onload = () => {
-      const base64 = String(lector.result).split(',')[1] || '';
-      resolve({
-        id: `f-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        nombre: file.name,
-        mimeType: file.type,
-        size: file.size,
-        base64,
-      });
-    };
-    lector.onerror = () => reject(new Error('No se pudo leer el archivo.'));
-    lector.readAsDataURL(file);
-  });
-}
-
-/** Icono SVG según el tipo de archivo (PDF o Imagen) */
-function IconoTipoArchivo({ mimeType, size = 15 }) {
-  const esImagen = String(mimeType || '').startsWith('image/');
-  if (esImagen) {
-    return (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-        <polyline points="21 15 16 10 5 21"></polyline>
-      </svg>
-    );
-  }
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-      <polyline points="14 2 14 8 20 8"></polyline>
-      <line x1="16" y1="13" x2="8" y2="13"></line>
-      <line x1="16" y1="17" x2="8" y2="17"></line>
-    </svg>
-  );
-}
-
 export default function Chat() {
   usePageMeta({
     title: 'IRENIC | Chat de Convivencia Escolar - Colegio San Alberto Magno (COLSAM)',
@@ -208,9 +182,7 @@ export default function Chat() {
   const [messages, setMessages] = useState([MENSAJE_BIENVENIDA]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [adjunto, setAdjunto] = useState(null);
-  const [archivosSubidos, setArchivosSubidos] = useState([]);
-  const [menuArchivosAbierto, setMenuArchivosAbierto] = useState(false);
+  const [mensajeCitado, setMensajeCitado] = useState(null);
   const [leyendoId, setLeyendoId] = useState(null);
   const [escuchandoVoz, setEscuchandoVoz] = useState(false);
   const [cooldownHasta, setCooldownHasta] = useState(0);
@@ -222,8 +194,6 @@ export default function Chat() {
   const abortRef = useRef(null);
   const finRef = useRef(null);
   const inputRef = useRef(null);
-  const archivoRef = useRef(null);
-  const menuRef = useRef(null);
   const lecturaTokenRef = useRef(0);
   const reconocimientoRef = useRef(null);
   const textoBaseVozRef = useRef('');
@@ -434,18 +404,6 @@ export default function Chat() {
     el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
   }, [input]);
 
-  // Cierra el menú de archivos al hacer clic fuera
-  useEffect(() => {
-    if (!menuArchivosAbierto) return;
-    const handleClickFuera = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuArchivosAbierto(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickFuera);
-    return () => document.removeEventListener('mousedown', handleClickFuera);
-  }, [menuArchivosAbierto]);
-
   // Cancela cualquier solicitud pendiente, lectura o dictado al salir de la página
   useEffect(
     () => () => {
@@ -457,11 +415,32 @@ export default function Chat() {
     [detenerLectura, detenerDictadoVoz]
   );
 
+  /** Cita o quita la cita de un mensaje del chatbot (solo 1 a la vez) */
+  const alternarCitaMensaje = useCallback(
+    (mensajeObj) => {
+      if (!mensajeObj || mensajeObj.rol !== 'bot' || mensajeObj.esError) return;
+      setMensajeCitado((prev) => {
+        if (prev?.id === mensajeObj.id) {
+          showToastGreen('Se quitó el mensaje citado.');
+          return null;
+        }
+        showToastGreen('Se ha citado un mensaje del chatbot para dar contexto.');
+        return {
+          id: mensajeObj.id,
+          texto: mensajeObj.texto,
+          resumen: resumirTextoCita(mensajeObj.texto),
+        };
+      });
+      inputRef.current?.focus();
+    },
+    [showToastGreen]
+  );
+
   /** Envía una consulta al motor normativo y agrega la respuesta al chat */
   const enviarConsulta = useCallback(
-    async (textoCrudo, adjuntoActual = null) => {
+    async (textoCrudo, citaActual = null) => {
       const texto = (textoCrudo || '').trim();
-      if ((!texto && !adjuntoActual) || loading) return;
+      if (!texto || loading) return;
 
       // 1. Verificar si hay bloqueo activo por spam en localStorage
       const estadoSpam = obtenerEstadoBloqueoLocal();
@@ -472,7 +451,7 @@ export default function Chat() {
         return;
       }
 
-      // 2. Verificar enfriamiento (cooldown) de 3 segundos entre mensajes
+      // 2. Verificar enfriamiento (cooldown) corto entre mensajes
       const ahora = Date.now();
       if (cooldownHasta > ahora) {
         const segRestantes = Math.max(1, Math.ceil((cooldownHasta - ahora) / 1000));
@@ -483,7 +462,7 @@ export default function Chat() {
       detenerDictadoVoz();
       detenerLectura();
 
-      const mensaje = texto || 'Analiza este archivo adjunto conforme al Manual de Convivencia.';
+      const mensaje = texto;
       const historial = messagesRef.current;
 
       const idMensajeUsuario = `u-${Date.now()}`;
@@ -493,13 +472,11 @@ export default function Chat() {
           id: idMensajeUsuario,
           rol: 'usuario',
           texto: mensaje,
-          adjuntoNombre: adjuntoActual?.nombre,
-          adjuntoMime: adjuntoActual?.mimeType,
+          citaResumen: citaActual?.resumen || '',
         },
       ]);
       setInput('');
-      setAdjunto(null);
-      setMenuArchivosAbierto(false);
+      setMensajeCitado(null);
       setLoading(true);
 
       const controlador = new AbortController();
@@ -509,9 +486,7 @@ export default function Chat() {
         const respuesta = await consultarManual({
           historial,
           mensaje,
-          adjunto: adjuntoActual
-            ? { mimeType: adjuntoActual.mimeType, base64: adjuntoActual.base64 }
-            : null,
+          citaBot: citaActual?.texto || '',
           signal: controlador.signal,
         });
 
@@ -564,49 +539,13 @@ export default function Chat() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    enviarConsulta(input, adjunto);
+    enviarConsulta(input, mensajeCitado);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      enviarConsulta(input, adjunto);
-    }
-  };
-
-  /** Selección de archivo adjunto (imagen o PDF ligero) */
-  const handleArchivo = async (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-
-    if (!TIPOS_ADJUNTO.includes(file.type)) {
-      showToastGreen('Formato no admitido. Sube una imagen (PNG, JPG, WEBP) o un PDF.');
-      return;
-    }
-    if (file.size > MAX_ADJUNTO_BYTES) {
-      showToastGreen('El archivo supera el límite de 3.5 MB.');
-      return;
-    }
-
-    try {
-      const nuevoArchivo = await leerArchivo(file);
-      setAdjunto(nuevoArchivo);
-      setArchivosSubidos((prev) => {
-        const sinDuplicado = prev.filter((item) => item.nombre !== nuevoArchivo.nombre || item.size !== nuevoArchivo.size);
-        return [nuevoArchivo, ...sinDuplicado];
-      });
-      showToastGreen(`Archivo "${nuevoArchivo.nombre}" listo para analizar.`);
-    } catch (err) {
-      showToastGreen('No se pudo leer el archivo seleccionado.');
-    }
-  };
-
-  /** Elimina un archivo del menú de archivos subidos */
-  const eliminarArchivoMenu = (idArchivo) => {
-    setArchivosSubidos((prev) => prev.filter((f) => f.id !== idArchivo));
-    if (adjunto?.id === idArchivo) {
-      setAdjunto(null);
+      enviarConsulta(input, mensajeCitado);
     }
   };
 
@@ -619,9 +558,7 @@ export default function Chat() {
     setLoading(false);
     setMessages([MENSAJE_BIENVENIDA]);
     setInput('');
-    setAdjunto(null);
-    setArchivosSubidos([]);
-    setMenuArchivosAbierto(false);
+    setMensajeCitado(null);
     showToastGreen('Iniciando una nueva consulta limpia...');
   };
 
@@ -695,7 +632,7 @@ export default function Chat() {
               key={chip.label}
               className="chip-btn"
               disabled={loading || estaEnCooldown || estaBloqueadoSpam}
-              onClick={() => enviarConsulta(chip.prompt)}
+              onClick={() => enviarConsulta(chip.prompt, mensajeCitado)}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 {chip.icon}
@@ -712,19 +649,20 @@ export default function Chat() {
             <div className="irenic-chat-messages-inner">
               {messages.map((m) => {
                 const estaLeyendo = leyendoId === m.id;
+                const estaCitado = mensajeCitado?.id === m.id;
                 return (
                   <div key={m.id} className={`irenic-msg-row ${m.rol}${m.esError ? ' error' : ''}`}>
                     {m.rol === 'bot' && <img src={`${ASSETS}logo-simple.jpg`} alt="" className="irenic-msg-avatar" />}
                     <div className="irenic-msg-bubble">
-                      {m.adjuntoNombre && (
-                        <div className="irenic-msg-attachment">
-                          <IconoTipoArchivo mimeType={m.adjuntoMime} size={14} />
-                          <span>{m.adjuntoNombre}</span>
+                      {m.citaResumen && (
+                        <div className="irenic-msg-attachment" title={m.citaResumen}>
+                          <IconoPin size={13} relleno />
+                          <span>Mensaje del chatbot citado</span>
                         </div>
                       )}
                       {m.rol === 'bot' ? <FormattedMessage texto={m.texto} /> : m.texto}
 
-                      {/* Opción añadida: Botón de lectura por voz para las respuestas del chatbot */}
+                      {/* Opciones de las respuestas del chatbot: Escuchar respuesta + Pin para citar (máx. 1) */}
                       {m.rol === 'bot' && !m.esError && (
                         <div className="irenic-msg-footer">
                           <button
@@ -753,6 +691,22 @@ export default function Chat() {
                               </>
                             )}
                           </button>
+
+                          <button
+                            type="button"
+                            className={`irenic-pin-btn${estaCitado ? ' active' : ''}`}
+                            onClick={() => alternarCitaMensaje(m)}
+                            title={
+                              estaCitado
+                                ? 'Quitar cita de esta respuesta'
+                                : 'Citar esta respuesta del chatbot como contexto (máx. 1)'
+                            }
+                            aria-label={estaCitado ? 'Quitar cita de respuesta' : 'Citar respuesta del chatbot'}
+                            aria-pressed={estaCitado}
+                          >
+                            <IconoPin size={14} relleno={estaCitado} />
+                            <span>{estaCitado ? 'Citado' : 'Citar'}</span>
+                          </button>
                         </div>
                       )}
                     </div>
@@ -779,17 +733,19 @@ export default function Chat() {
 
           {/* Barra de entrada */}
           <div className="irenic-chat-composer">
-            {adjunto && (
+            {mensajeCitado && (
               <div className="irenic-attach-preview">
-                <div className="irenic-attach-pill">
-                  <IconoTipoArchivo mimeType={adjunto.mimeType} size={15} />
-                  <span>{adjunto.nombre}</span>
-                  <small className="irenic-attach-pill-size">({formatearTamano(adjunto.size)})</small>
+                <div className="irenic-attach-pill" title={mensajeCitado.resumen}>
+                  <IconoPin size={15} relleno />
+                  <span>Se ha citado un mensaje del chatbot</span>
+                  <small className="irenic-attach-pill-size">
+                    — &ldquo;{mensajeCitado.resumen}&rdquo;
+                  </small>
                   <button
                     type="button"
-                    onClick={() => setAdjunto(null)}
-                    aria-label="Quitar archivo adjunto"
-                    title="Quitar de este mensaje"
+                    onClick={() => setMensajeCitado(null)}
+                    aria-label="Quitar mensaje citado"
+                    title="Quitar cita para poder citar otro mensaje"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -801,112 +757,6 @@ export default function Chat() {
             )}
 
             <form className="irenic-chat-form" onSubmit={handleSubmit}>
-              <input
-                ref={archivoRef}
-                type="file"
-                accept={TIPOS_ADJUNTO.join(',')}
-                onChange={handleArchivo}
-                style={{ display: 'none' }}
-              />
-
-              {/* Único botón de Clip SVG (abre selector directo o el menú de archivos subidos) */}
-              <div className="irenic-files-menu-anchor" ref={menuRef}>
-                <button
-                  type="button"
-                  className={`irenic-icon-btn${menuArchivosAbierto ? ' active' : ''}`}
-                  disabled={loading || estaBloqueadoSpam}
-                  onClick={() => {
-                    if (archivosSubidos.length === 0) {
-                      archivoRef.current?.click();
-                    } else {
-                      setMenuArchivosAbierto((prev) => !prev);
-                    }
-                  }}
-                  title={
-                    archivosSubidos.length === 0
-                      ? 'Adjuntar imagen (PNG, JPG, WEBP) o PDF (máx. 3.5 MB)'
-                      : 'Ver archivos subidos o adjuntar otro'
-                  }
-                  aria-label="Adjuntar o ver archivos"
-                  aria-expanded={menuArchivosAbierto}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                  </svg>
-                  {archivosSubidos.length > 0 && (
-                    <span className="irenic-clip-badge">{archivosSubidos.length}</span>
-                  )}
-                </button>
-
-                {menuArchivosAbierto && (
-                  <div className="irenic-files-popover" role="dialog" aria-label="Archivos subidos">
-                    <div className="irenic-files-popover-header">
-                      <span>Archivos cargados ({archivosSubidos.length})</span>
-                      <button
-                        type="button"
-                        className="irenic-file-use-btn"
-                        disabled={loading}
-                        onClick={() => archivoRef.current?.click()}
-                      >
-                        + Subir archivo
-                      </button>
-                    </div>
-
-                    <ul className="irenic-files-list">
-                      {archivosSubidos.map((item) => {
-                        const estaSeleccionado = adjunto?.id === item.id;
-                        return (
-                          <li
-                            key={item.id}
-                            className={`irenic-file-item${estaSeleccionado ? ' selected' : ''}`}
-                          >
-                            <div className="irenic-file-info">
-                              <IconoTipoArchivo mimeType={item.mimeType} size={16} />
-                              <div className="irenic-file-meta">
-                                <span className="irenic-file-name" title={item.nombre}>
-                                  {item.nombre}
-                                </span>
-                                <span className="irenic-file-sub">
-                                  {formatearTamano(item.size)} • {estaSeleccionado ? 'Adjunto al mensaje' : 'Cargado'}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="irenic-file-actions">
-                              <button
-                                type="button"
-                                className="irenic-file-use-btn"
-                                disabled={loading}
-                                onClick={() => {
-                                  setAdjunto(estaSeleccionado ? null : item);
-                                  setMenuArchivosAbierto(false);
-                                }}
-                              >
-                                {estaSeleccionado ? 'Quitar' : 'Usar'}
-                              </button>
-                              <button
-                                type="button"
-                                className="irenic-file-del-btn"
-                                onClick={() => eliminarArchivoMenu(item.id)}
-                                title="Eliminar archivo de la lista"
-                                aria-label={`Eliminar ${item.nombre}`}
-                              >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="3 6 5 6 21 6"></polyline>
-                                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                                  <path d="M10 11v6"></path>
-                                  <path d="M14 11v6"></path>
-                                </svg>
-                              </button>
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                )}
-              </div>
-
               <textarea
                 ref={inputRef}
                 className="irenic-chat-input"
@@ -920,7 +770,7 @@ export default function Chat() {
                     ? `Envío bloqueado temporalmente por spam (${textoTiempoBloqueo} restantes)...`
                     : escuchandoVoz
                       ? 'Escuchando tu voz... habla ahora y luego presiona Enviar'
-                      : 'Describe tu situación o adjunta un documento según el Manual de Convivencia...'
+                      : 'Describe tu situación o consulta según el Manual de Convivencia...'
                 }
                 aria-label="Escribe tu consulta"
               />
@@ -950,7 +800,7 @@ export default function Chat() {
               <button
                 type="submit"
                 className="irenic-send-btn"
-                disabled={loading || estaEnCooldown || estaBloqueadoSpam || (!input.trim() && !adjunto)}
+                disabled={loading || estaEnCooldown || estaBloqueadoSpam || !input.trim()}
                 title={
                   estaBloqueadoSpam
                     ? `Acceso bloqueado temporalmente (${textoTiempoBloqueo})`

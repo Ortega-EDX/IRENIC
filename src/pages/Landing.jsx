@@ -114,10 +114,11 @@ export default function Landing() {
 
             <div className="presentation-card">
               <div className="card-img-container">
-                <img src={`${ASSETS}archivos-documentos.png`} alt="Lectura de Archivos y Documentos" className="card-img-illustration" />
+                {/* Imagen pendiente de actualizar por la ilustración del módulo de audio */}
+                <img src={`${ASSETS}archivos-documentos.png`} alt="Interacción por Micrófono y Respuesta con Audio" className="card-img-illustration" />
               </div>
-              <h3>Lectura de Archivos</h3>
-              <p>Sube fotos de circulares o excusas médicas directamente en el chat para que Irenic te oriente con exactitud.</p>
+              <h3>Voz y Lectura en Audio</h3>
+              <p>Háblale directamente usando el micrófono para dictar tu consulta y escucha las respuestas de Irenic con audio cuando lo prefieras.</p>
             </div>
 
             <div className="presentation-card">
