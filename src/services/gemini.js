@@ -31,50 +31,50 @@ export const MENSAJE_RECHAZO_NORMATIVO =
   'El mensaje no ha podido ser procesado ni enviado porque infringe las normas de uso, convivencia y los Términos y Condiciones de IRENIC.';
 
 /**
- * Expresiones Regulares de Capa 1 Contextual (Input y Output):
- * Insultos, groserías fuertes y patrones de Prompt Injection / Jailbreak.
+ * Expresiones Regulares de Capa 1 Híbrida (Recomendación 3 - Input y Output):
+ * Estructura de ataque vs. pregunta + Enmascaramiento semántico de groserías en consultas.
  */
-const REGEX_GROSERIAS_FUERTES = new RegExp(
-  '\\b(' +
-    [
-      'gonorre[a@o0]s?',
-      'hijueput[a@o0]s?',
-      'hpta?s?',
-      'triplehijueput[a@o0]s?',
-      'malparid[o0a@]s?',
-      'maricon(es)?',
-      'pirob[o0a@]s?',
-      'carechimb[a@]s?',
-      'caremond[a@]s?',
-      'careverg[a@]s?',
-      'cacorr[o0a@]s?',
-      'huevon(es|a|as)?',
-      'guevon(es|a|as)?',
-      'mierd[a@]s?',
-      'put[a@o0]s?',
-      'putear',
-      'pendej[o0a@]s?',
-      'imbecil(es)?',
-      'idiot[a@]s?',
-      'estupid[o0a@]s?',
-      'cabron(es|a|as)?',
-      'culer[o0a@]s?',
-      'verg[a@]s?',
-      'mond[a@]s?',
-      'tetranutr[a@]s?',
-      'comemierd[a@]s?',
-      'mamaguev[o0]s?',
-      'mamabich[o0]s?',
-      'jodete',
-      'pudrete',
-      'vete\\s+a\\s+la\\s+mierda',
-      'fuck(ing|er)?',
-      'bitch(es)?',
-      'asshole',
-    ].join('|') +
-    ')\\b',
-  'i'
-);
+const LISTA_PATRONES_GROSERIAS = [
+  'gonorre[a@o0]s?',
+  'hijueput[a@o0]s?',
+  'hpta?s?',
+  'triplehijueput[a@o0]s?',
+  'malparid[o0a@]s?',
+  'maric[a@o0]s?',
+  'maricon(es)?',
+  'pirob[o0a@]s?',
+  'carechimb[a@]s?',
+  'caremond[a@]s?',
+  'careverg[a@]s?',
+  'cacorr[o0a@]s?',
+  'huevon(es|a|as)?',
+  'guevon(es|a|as)?',
+  'weon(es|a|as)?',
+  'mierd[a@]s?',
+  'put[a@o0]s?',
+  'putear',
+  'pendej[o0a@]s?',
+  'imbecil(es)?',
+  'idiot[a@]s?',
+  'estupid[o0a@]s?',
+  'cabron(es|a|as)?',
+  'culer[o0a@]s?',
+  'verg[a@]s?',
+  'mond[a@]s?',
+  'tetranutr[a@]s?',
+  'comemierd[a@]s?',
+  'mamaguev[o0]s?',
+  'mamabich[o0]s?',
+  'jodete',
+  'pudrete',
+  'vete\\s+a\\s+la\\s+mierda',
+  'fuck(ing|er)?',
+  'bitch(es)?',
+  'asshole',
+];
+
+const REGEX_GROSERIAS_FUERTES = new RegExp(`\\b(${LISTA_PATRONES_GROSERIAS.join('|')})\\b`, 'i');
+const REGEX_GROSERIAS_GLOBAL = new RegExp(`\\b(${LISTA_PATRONES_GROSERIAS.join('|')})\\b`, 'gi');
 
 const REGEX_PROMPT_INJECTION = new RegExp(
   '(' +
@@ -109,34 +109,57 @@ const REGEX_PROMPT_INJECTION = new RegExp(
   'i'
 );
 
-const REGEX_CONTEXTO_CONSULTA_ESCOLAR = new RegExp(
+const REGEX_ATAQUE_DIRECTO_BOT = new RegExp(
   '\\b(' +
     [
-      'me\\s+dijo',
-      'me\\s+dijeron',
-      'le\\s+dijo',
-      'me\\s+insulto',
-      'me\\s+trato\\s+mal',
-      'companero',
-      'estudiante',
-      'profesor',
-      'docente',
+      'eres(\\s+un|\\s+una|\\s+muy|\\s+tan|\\s+re)?',
+      'tu\\s+eres',
+      'usted\\s+es',
+      'vos\\s+sos',
+      'chatbot',
+      'irenic',
+      'asistente',
+      'dime',
+      'llamame',
+      'repite',
+      'insultame',
+    ].join('|') +
+    ')\\b',
+  'i'
+);
+
+const REGEX_ESTRUCTURA_PREGUNTA_O_RELATO = new RegExp(
+  '(\\\?|\\b(' +
+    [
+      'que\\s+(puedo|debo|hago|pasa|sucede|hacer|dice|significa|falta|sancion|articulo|protocolo)',
+      'como\\s+(puedo|debo|actuo|denuncio|reporto|se\\s+maneja)',
+      'cual(es)?\\s+(es|son)',
+      'a\\s+quien\\s+acudo',
+      'si\\s+(alguien|un|una|mi|el|la|me|le|nos)',
+      'alguien\\s+(me|le|nos|dice|dijo|insulto|trato|llamo|grito)',
+      '(me|le|nos)\\s+(dice|dicen|dijo|dijeron|insulta|insulto|insultaron|llamo|llamaron|trato|grito)',
+      'companer[o0a@]s?',
+      'estudiante(s)?',
+      'profesor(a|es)?',
+      'docente(s)?',
+      'coordinador(a)?',
       'colegio',
       'salon',
       'clase',
+      'recreo',
+      'descanso',
       'manual',
       'convivencia',
-      'falta',
+      'falta(s)?',
       'tipo\\s+(1|2|3|i|ii|iii)',
-      'sancion',
-      'articulo',
+      'sancion(es)?',
+      'articulo(s)?',
       'debido\\s+proceso',
       'protocolo',
-      'que\\s+pasa\\s+si',
-      'que\\s+hago\\s+si',
-      'es\\s+legal',
+      'acoso',
+      'bullying',
     ].join('|') +
-    ')\\b',
+    ')\\b)',
   'i'
 );
 
@@ -147,9 +170,62 @@ function normalizarParaFiltro(texto = '') {
     .toLowerCase();
 }
 
+function contarPalabrasSignificativasSinGroseria(textoNormalizado = '') {
+  const sinGroserias = textoNormalizado.replace(REGEX_GROSERIAS_GLOBAL, ' ');
+  const limpio = sinGroserias
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(
+      (w) =>
+        w.length > 1 &&
+        ![
+          'hola',
+          'buenas',
+          'buenos',
+          'dias',
+          'tardes',
+          'noches',
+          'oye',
+          'ey',
+          'hey',
+          'alo',
+          'ok',
+          'si',
+          'no',
+          'tu',
+          'usted',
+          'vos',
+          'muy',
+          'tan',
+          're',
+          'un',
+          'una',
+          'el',
+          'la',
+          'los',
+          'las',
+        ].includes(w)
+    );
+  return limpio.length;
+}
+
+export function sanitizarGroseriasEnConsulta(textoOriginal = '') {
+  const palabras = String(textoOriginal || '').split(/(\s+)/);
+  return palabras
+    .map((fragmento) => {
+      const norm = normalizarParaFiltro(fragmento).replace(/[^a-z0-9@]/g, '');
+      if (norm && REGEX_GROSERIAS_FUERTES.test(norm)) {
+        return '[un insulto / agresión verbal]';
+      }
+      return fragmento;
+    })
+    .join('');
+}
+
 /**
  * Evalúa si un texto contiene groserías directas o intentos de Prompt Injection (Capa 1),
- * respetando el contexto cuando un estudiante narra un caso de convivencia escolar.
+ * permitiendo que preguntas legítimas ("que puedo hacer si alguien me dice estupido")
+ * pasen sanitizadas al modelo.
  */
 export function contieneInfraccionLocal(texto = '', esOutput = false) {
   const normalizado = normalizarParaFiltro(texto);
@@ -161,10 +237,13 @@ export function contieneInfraccionLocal(texto = '', esOutput = false) {
 
   if (REGEX_GROSERIAS_FUERTES.test(normalizado)) {
     if (esOutput) return true;
-    if (/\b(eres\s+un|dime|llamame|chatbot|irenic|bot)\b/i.test(normalizado)) {
+    if (REGEX_ATAQUE_DIRECTO_BOT.test(normalizado)) {
       return true;
     }
-    if (REGEX_CONTEXTO_CONSULTA_ESCOLAR.test(normalizado)) {
+    if (contarPalabrasSignificativasSinGroseria(normalizado) < 3) {
+      return true;
+    }
+    if (REGEX_ESTRUCTURA_PREGUNTA_O_RELATO.test(normalizado)) {
       return false;
     }
     return true;
@@ -332,7 +411,7 @@ function extraerUltimoTurnoValido(historial = []) {
       continue;
     }
     ultimoPar = [
-      { rol: 'usuario', texto: tU },
+      { rol: 'usuario', texto: sanitizarGroseriasEnConsulta(tU) },
       { rol: 'bot', texto: tB },
     ];
   }
@@ -364,6 +443,9 @@ export async function consultarManual({ historial = [], mensaje, adjunto, signal
     return MENSAJE_RECHAZO_NORMATIVO;
   }
 
+  // 3. Si es una pregunta válida que menciona un insulto ("que puedo hacer si alguien me dice estupido"),
+  // se enmascara la palabra ofensiva antes de enviarla al servidor/modelo.
+  const mensajeSanitizado = sanitizarGroseriasEnConsulta(mensaje);
   const historialUnTurno = extraerUltimoTurnoValido(historial);
   const clientId = obtenerClientId();
   const controlador = new AbortController();
@@ -380,7 +462,7 @@ export async function consultarManual({ historial = [], mensaje, adjunto, signal
           'Content-Type': 'application/json',
           'x-client-id': clientId,
         },
-        body: JSON.stringify({ historial: historialUnTurno, mensaje, adjunto, clientId }),
+        body: JSON.stringify({ historial: historialUnTurno, mensaje: mensajeSanitizado, adjunto, clientId }),
         signal: controlador.signal,
       });
     } catch (e) {

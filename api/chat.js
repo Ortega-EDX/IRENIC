@@ -67,53 +67,56 @@ const COOLDOWN_RPD_MS = 15 * 60 * 1000;
 
 /**
  * ============================================================================
- * CAPA 1: FILTRO CONTEXTUAL POR EXPRESIONES REGULARES (INPUT Y OUTPUT)
- * - Detecta intentos directos de Prompt Injection / Jailbreak.
- * - Detecta groserías e insultos directos, pero distingue cuando el estudiante
- *   está narrando un caso escolar ("un compañero me dijo...", "¿qué pasa si...?").
+ * CAPA 1 HÍBRIDA (RECOMENDACIÓN 3):
+ * ESTRUCTURA DE ATAQUE VS. PREGUNTA + ENMASCARAMIENTO SEMÁNTICO DE GROSERÍAS
+ * - Bloquea en el acto: Prompt Injection, órdenes al bot, insultos cortos/con relleno
+ *   ("estúpido, hola") o insultos en segunda persona ("eres un...").
+ * - En consultas o relatos ("¿qué puedo hacer si alguien me dice estúpido?"):
+ *   neutraliza/enmascara la grosería como "[un insulto / agresión verbal]" para que el
+ *   modelo oriente al estudiante según el Manual sin exponerse a la palabra ofensiva.
  * ============================================================================
  */
-const REGEX_GROSERIAS_FUERTES = new RegExp(
-  '\\b(' +
-    [
-      'gonorre[a@o0]s?',
-      'hijueput[a@o0]s?',
-      'hpta?s?',
-      'triplehijueput[a@o0]s?',
-      'malparid[o0a@]s?',
-      'maricon(es)?',
-      'pirob[o0a@]s?',
-      'carechimb[a@]s?',
-      'caremond[a@]s?',
-      'careverg[a@]s?',
-      'cacorr[o0a@]s?',
-      'huevon(es|a|as)?',
-      'guevon(es|a|as)?',
-      'mierd[a@]s?',
-      'put[a@o0]s?',
-      'putear',
-      'pendej[o0a@]s?',
-      'imbecil(es)?',
-      'idiot[a@]s?',
-      'estupid[o0a@]s?',
-      'cabron(es|a|as)?',
-      'culer[o0a@]s?',
-      'verg[a@]s?',
-      'mond[a@]s?',
-      'tetranutr[a@]s?',
-      'comemierd[a@]s?',
-      'mamaguev[o0]s?',
-      'mamabich[o0]s?',
-      'jodete',
-      'pudrete',
-      'vete\\s+a\\s+la\\s+mierda',
-      'fuck(ing|er)?',
-      'bitch(es)?',
-      'asshole',
-    ].join('|') +
-    ')\\b',
-  'i'
-);
+const LISTA_PATRONES_GROSERIAS = [
+  'gonorre[a@o0]s?',
+  'hijueput[a@o0]s?',
+  'hpta?s?',
+  'triplehijueput[a@o0]s?',
+  'malparid[o0a@]s?',
+  'maric[a@o0]s?',
+  'maricon(es)?',
+  'pirob[o0a@]s?',
+  'carechimb[a@]s?',
+  'caremond[a@]s?',
+  'careverg[a@]s?',
+  'cacorr[o0a@]s?',
+  'huevon(es|a|as)?',
+  'guevon(es|a|as)?',
+  'weon(es|a|as)?',
+  'mierd[a@]s?',
+  'put[a@o0]s?',
+  'putear',
+  'pendej[o0a@]s?',
+  'imbecil(es)?',
+  'idiot[a@]s?',
+  'estupid[o0a@]s?',
+  'cabron(es|a|as)?',
+  'culer[o0a@]s?',
+  'verg[a@]s?',
+  'mond[a@]s?',
+  'tetranutr[a@]s?',
+  'comemierd[a@]s?',
+  'mamaguev[o0]s?',
+  'mamabich[o0]s?',
+  'jodete',
+  'pudrete',
+  'vete\\s+a\\s+la\\s+mierda',
+  'fuck(ing|er)?',
+  'bitch(es)?',
+  'asshole',
+];
+
+const REGEX_GROSERIAS_FUERTES = new RegExp(`\\b(${LISTA_PATRONES_GROSERIAS.join('|')})\\b`, 'i');
+const REGEX_GROSERIAS_GLOBAL = new RegExp(`\\b(${LISTA_PATRONES_GROSERIAS.join('|')})\\b`, 'gi');
 
 const REGEX_PROMPT_INJECTION = new RegExp(
   '(' +
@@ -149,38 +152,62 @@ const REGEX_PROMPT_INJECTION = new RegExp(
 );
 
 /**
- * Contexto pedagógico/consulta de caso: si el estudiante relata lo que le dijo un
- * compañero para consultar qué falta es ("un compañero me dijo...", "¿qué pasa si me dicen..."),
- * y NO hay intento de Prompt Injection, se permite que la Capa 3 analice el contexto.
+ * Detecta cuando el insulto va dirigido en segunda persona al bot o como orden ("eres un...", "dime...", "chatbot...").
  */
-const REGEX_CONTEXTO_CONSULTA_ESCOLAR = new RegExp(
+const REGEX_ATAQUE_DIRECTO_BOT = new RegExp(
   '\\b(' +
     [
-      'me\\s+dijo',
-      'me\\s+dijeron',
-      'le\\s+dijo',
-      'me\\s+insulto',
-      'me\\s+trato\\s+mal',
-      'companero',
-      'estudiante',
-      'profesor',
-      'docente',
+      'eres(\\s+un|\\s+una|\\s+muy|\\s+tan|\\s+re)?',
+      'tu\\s+eres',
+      'usted\\s+es',
+      'vos\\s+sos',
+      'chatbot',
+      'irenic',
+      'asistente',
+      'dime',
+      'llamame',
+      'repite',
+      'insultame',
+    ].join('|') +
+    ')\\b',
+  'i'
+);
+
+/**
+ * Detecta estructura gramatical de pregunta, condicional o relato de convivencia escolar.
+ */
+const REGEX_ESTRUCTURA_PREGUNTA_O_RELATO = new RegExp(
+  '(\\\?|\\b(' +
+    [
+      'que\\s+(puedo|debo|hago|pasa|sucede|hacer|dice|significa|falta|sancion|articulo|protocolo)',
+      'como\\s+(puedo|debo|actuo|denuncio|reporto|se\\s+maneja)',
+      'cual(es)?\\s+(es|son)',
+      'a\\s+quien\\s+acudo',
+      'si\\s+(alguien|un|una|mi|el|la|me|le|nos)',
+      'alguien\\s+(me|le|nos|dice|dijo|insulto|trato|llamo|grito)',
+      '(me|le|nos)\\s+(dice|dicen|dijo|dijeron|insulta|insulto|insultaron|llamo|llamaron|trato|grito)',
+      'companer[o0a@]s?',
+      'estudiante(s)?',
+      'profesor(a|es)?',
+      'docente(s)?',
+      'coordinador(a)?',
       'colegio',
       'salon',
       'clase',
+      'recreo',
+      'descanso',
       'manual',
       'convivencia',
-      'falta',
+      'falta(s)?',
       'tipo\\s+(1|2|3|i|ii|iii)',
-      'sancion',
-      'articulo',
+      'sancion(es)?',
+      'articulo(s)?',
       'debido\\s+proceso',
       'protocolo',
-      'que\\s+pasa\\s+si',
-      'que\\s+hago\\s+si',
-      'es\\s+legal',
+      'acoso',
+      'bullying',
     ].join('|') +
-    ')\\b',
+    ')\\b)',
   'i'
 );
 
@@ -189,6 +216,65 @@ function normalizarParaFiltro(texto = '') {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+}
+
+/**
+ * Cuenta cuántas palabras con contenido quedan tras quitar groserías y saludos/relleno ("hola", "oye", etc.).
+ * Así detectamos trucos como "estúpido, hola" o "hola idiota".
+ */
+function contarPalabrasSignificativasSinGroseria(textoNormalizado = '') {
+  const sinGroserias = textoNormalizado.replace(REGEX_GROSERIAS_GLOBAL, ' ');
+  const limpio = sinGroserias
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(
+      (w) =>
+        w.length > 1 &&
+        ![
+          'hola',
+          'buenas',
+          'buenos',
+          'dias',
+          'tardes',
+          'noches',
+          'oye',
+          'ey',
+          'hey',
+          'alo',
+          'ok',
+          'si',
+          'no',
+          'tu',
+          'usted',
+          'vos',
+          'muy',
+          'tan',
+          're',
+          'un',
+          'una',
+          'el',
+          'la',
+          'los',
+          'las',
+        ].includes(w)
+    );
+  return limpio.length;
+}
+
+/**
+ * Reemplaza cualquier grosería por "[un insulto / agresión verbal]" conservando el resto de la pregunta.
+ */
+export function sanitizarGroseriasEnConsulta(textoOriginal = '') {
+  const palabras = String(textoOriginal || '').split(/(\s+)/);
+  return palabras
+    .map((fragmento) => {
+      const norm = normalizarParaFiltro(fragmento).replace(/[^a-z0-9@]/g, '');
+      if (norm && REGEX_GROSERIAS_FUERTES.test(norm)) {
+        return '[un insulto / agresión verbal]';
+      }
+      return fragmento;
+    })
+    .join('');
 }
 
 export function contieneInfraccionLocal(texto = '', esOutput = false) {
@@ -200,19 +286,28 @@ export function contieneInfraccionLocal(texto = '', esOutput = false) {
     return true;
   }
 
-  // 2. Groserías / insultos:
+  // 2. Evaluación de groserías:
   if (REGEX_GROSERIAS_FUERTES.test(normalizado)) {
     // En la respuesta del bot (Output), jamás debe haber groserías
     if (esOutput) return true;
-    // Si el usuario insulta directamente al bot ("eres un...", "dime...") se bloquea de inmediato
-    if (/\b(eres\s+un|dime|llamame|chatbot|irenic|bot)\b/i.test(normalizado)) {
+
+    // Si va dirigido al bot o en segunda persona ("eres un...", "dime...", "irenic...") -> Bloqueo inmediato
+    if (REGEX_ATAQUE_DIRECTO_BOT.test(normalizado)) {
       return true;
     }
-    // Si el usuario está consultando un caso escolar ("un compañero me dijo...", "¿qué falta es si..."),
-    // dejamos que la Capa 3 lo evalúe en contexto; de lo contrario, se bloquea en Capa 1.
-    if (REGEX_CONTEXTO_CONSULTA_ESCOLAR.test(normalizado)) {
+
+    // Si es un mensaje corto / insulto con saludo de relleno ("estúpido, hola", "hola idiota") -> Bloqueo inmediato
+    if (contarPalabrasSignificativasSinGroseria(normalizado) < 3) {
+      return true;
+    }
+
+    // Si tiene estructura de pregunta o relato escolar ("que puedo hacer si alguien me dice estupido"),
+    // NO se bloquea: pasará sanitizado (con la grosería enmascarada) para que el chatbot oriente al estudiante.
+    if (REGEX_ESTRUCTURA_PREGUNTA_O_RELATO.test(normalizado)) {
       return false;
     }
+
+    // En cualquier otro caso donde haya una grosería sin contexto de pregunta -> Bloqueo inmediato
     return true;
   }
 
@@ -457,7 +552,7 @@ function construirContenidos(historial = [], mensaje = '', adjunto = null) {
     }
 
     paresValidos.push([
-      { role: 'user', parts: [{ text: textoU }] },
+      { role: 'user', parts: [{ text: sanitizarGroseriasEnConsulta(textoU) }] },
       { role: 'model', parts: [{ text: JSON.stringify({ es_seguro: true, respuesta: textoB }) }] },
     ]);
   }
@@ -465,7 +560,8 @@ function construirContenidos(historial = [], mensaje = '', adjunto = null) {
   // Tomar únicamente el último par válido (1 turno previo = 2 mensajes)
   const ultimoPar = paresValidos.length > 0 ? paresValidos[paresValidos.length - 1].slice(0, MAX_TURNOS_HISTORIAL) : [];
 
-  const partesActual = [{ text: String(mensaje || '').trim() }];
+  const mensajeSanitizado = sanitizarGroseriasEnConsulta(String(mensaje || '').trim());
+  const partesActual = [{ text: mensajeSanitizado }];
   if (adjunto && adjunto.mimeType && adjunto.base64) {
     partesActual.push({
       inlineData: {
