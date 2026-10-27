@@ -6,20 +6,20 @@
  *   híbrido (`${ip}_${clientId}`) pensado para redes escolares compartidas (NAT).
  * - Sincroniza las sanciones temporales (`blockedUntil` y `strikes`) en `localStorage`
  *   para resistir reinicios en frío (cold starts) de funciones Serverless.
- * - Ejecuta la Capa 1 (Filtro local por Expresiones Regulares en Input y Output)
- *   para cortar de inmediato lenguaje ofensivo o intentos de Prompt Injection sin
- *   consumir cuota de la API.
+ * - Ejecuta la Capa 1 contextual (Filtro local por Expresiones Regulares en Input y Output)
+ *   para cortar de inmediato insultos directos o intentos de Prompt Injection sin
+ *   consumir cuota de la API, permitiendo consultas legítimas del Manual.
  */
 
 const TIMEOUT_MS = 60000;
 
 const STORAGE_CLIENT_ID = 'irenic_client_id';
-const STORAGE_BLOCKED_UNTIL = 'irenic_blocked_until';
-const STORAGE_SPAM_STRIKES = 'irenic_spam_strikes';
-const STORAGE_MSG_TIMESTAMPS = 'irenic_msg_timestamps';
+const STORAGE_BLOCKED_UNTIL = 'irenic_blocked_until_v2';
+const STORAGE_SPAM_STRIKES = 'irenic_spam_strikes_v2';
+const STORAGE_MSG_TIMESTAMPS = 'irenic_msg_timestamps_v2';
 
-const VENTANA_SPAM_MS = 10 * 1000; // 10 segundos
-const MAX_MENSAJES_VENTANA = 5; // 5 o más mensajes en menos de 10 segundos
+const VENTANA_SPAM_MS = 15 * 1000; // 15 segundos para detectar ráfagas de 5 mensajes seguidos
+const MAX_MENSAJES_VENTANA = 5; // 5 o más mensajes dentro de la ventana
 const SANCION_5_MIN_MS = 5 * 60 * 1000; // 5 minutos
 const SANCION_24_HORAS_MS = 24 * 60 * 60 * 1000; // 24 horas
 const MAX_STRIKES_PARA_24H = 3;
@@ -31,21 +31,18 @@ export const MENSAJE_RECHAZO_NORMATIVO =
   'El mensaje no ha podido ser procesado ni enviado porque infringe las normas de uso, convivencia y los Términos y Condiciones de IRENIC.';
 
 /**
- * Expresiones Regulares de Capa 1 (Input y Output):
- * Insultos, groserías (generales y modismos colombianos) y patrones de Prompt Injection.
+ * Expresiones Regulares de Capa 1 Contextual (Input y Output):
+ * Insultos, groserías fuertes y patrones de Prompt Injection / Jailbreak.
  */
-const REGEX_GROSERIAS = new RegExp(
+const REGEX_GROSERIAS_FUERTES = new RegExp(
   '\\b(' +
     [
       'gonorre[a@o0]s?',
       'hijueput[a@o0]s?',
       'hpta?s?',
-      'hp',
       'triplehijueput[a@o0]s?',
       'malparid[o0a@]s?',
-      'maric[a@o0]s?',
       'maricon(es)?',
-      'mk',
       'pirob[o0a@]s?',
       'carechimb[a@]s?',
       'caremond[a@]s?',
@@ -53,7 +50,6 @@ const REGEX_GROSERIAS = new RegExp(
       'cacorr[o0a@]s?',
       'huevon(es|a|as)?',
       'guevon(es|a|as)?',
-      'weon(es|a|as)?',
       'mierd[a@]s?',
       'put[a@o0]s?',
       'putear',
@@ -65,14 +61,10 @@ const REGEX_GROSERIAS = new RegExp(
       'culer[o0a@]s?',
       'verg[a@]s?',
       'mond[a@]s?',
-      'chimb[o0a@]s?',
       'tetranutr[a@]s?',
-      'zorr[a@]s?',
-      'perr[a@]s?\\s+malparid[a@]s?',
       'comemierd[a@]s?',
       'mamaguev[o0]s?',
       'mamabich[o0]s?',
-      'chinga(r|da|do|tu)?',
       'jodete',
       'pudrete',
       'vete\\s+a\\s+la\\s+mierda',
@@ -87,9 +79,9 @@ const REGEX_GROSERIAS = new RegExp(
 const REGEX_PROMPT_INJECTION = new RegExp(
   '(' +
     [
-      'ignora\\s+(todas\\s+)?(tus\\s+|las\\s+)?instrucciones(\\s+anteriores|\\s+previas)?',
-      'olvida\\s+(todas\\s+)?(tus\\s+|las\\s+)?instrucciones(\\s+anteriores|\\s+previas)?',
-      'descarta\\s+(todas\\s+)?(tus\\s+|las\\s+)?reglas',
+      'ignora\\s+(todas\\s+)?(tus\\s+|las\\s+)?(instrucciones|reglas)(\\s+anteriores|\\s+previas)?',
+      'olvida\\s+(todas\\s+)?(tus\\s+|las\\s+)?(instrucciones|reglas)(\\s+anteriores|\\s+previas)?',
+      'descarta\\s+(todas\\s+)?(tus\\s+|las\\s+)?(instrucciones|reglas)',
       'ignore\\s+(all\\s+)?(previous|prior|above)\\s+(instructions|rules|prompts)',
       'forget\\s+(all\\s+)?(previous|prior|above)\\s+(instructions|rules|prompts)',
       'system\\s*prompt',
@@ -117,6 +109,37 @@ const REGEX_PROMPT_INJECTION = new RegExp(
   'i'
 );
 
+const REGEX_CONTEXTO_CONSULTA_ESCOLAR = new RegExp(
+  '\\b(' +
+    [
+      'me\\s+dijo',
+      'me\\s+dijeron',
+      'le\\s+dijo',
+      'me\\s+insulto',
+      'me\\s+trato\\s+mal',
+      'companero',
+      'estudiante',
+      'profesor',
+      'docente',
+      'colegio',
+      'salon',
+      'clase',
+      'manual',
+      'convivencia',
+      'falta',
+      'tipo\\s+(1|2|3|i|ii|iii)',
+      'sancion',
+      'articulo',
+      'debido\\s+proceso',
+      'protocolo',
+      'que\\s+pasa\\s+si',
+      'que\\s+hago\\s+si',
+      'es\\s+legal',
+    ].join('|') +
+    ')\\b',
+  'i'
+);
+
 function normalizarParaFiltro(texto = '') {
   return String(texto || '')
     .normalize('NFD')
@@ -125,12 +148,29 @@ function normalizarParaFiltro(texto = '') {
 }
 
 /**
- * Evalúa si un texto contiene groserías o intentos de Prompt Injection (Capa 1).
+ * Evalúa si un texto contiene groserías directas o intentos de Prompt Injection (Capa 1),
+ * respetando el contexto cuando un estudiante narra un caso de convivencia escolar.
  */
-export function contieneInfraccionLocal(texto = '') {
+export function contieneInfraccionLocal(texto = '', esOutput = false) {
   const normalizado = normalizarParaFiltro(texto);
   if (!normalizado.trim()) return false;
-  return REGEX_GROSERIAS.test(normalizado) || REGEX_PROMPT_INJECTION.test(normalizado);
+
+  if (REGEX_PROMPT_INJECTION.test(normalizado)) {
+    return true;
+  }
+
+  if (REGEX_GROSERIAS_FUERTES.test(normalizado)) {
+    if (esOutput) return true;
+    if (/\b(eres\s+un|dime|llamame|chatbot|irenic|bot)\b/i.test(normalizado)) {
+      return true;
+    }
+    if (REGEX_CONTEXTO_CONSULTA_ESCOLAR.test(normalizado)) {
+      return false;
+    }
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -182,7 +222,7 @@ export function obtenerEstadoBloqueoLocal() {
         mensaje:
           strikes >= MAX_STRIKES_PARA_24H
             ? `Acceso bloqueado por 24 horas debido a reincidencia de spam. Tiempo restante: ${tiempoTexto}.`
-            : `Demasiados mensajes enviados en poco tiempo. Espera ${tiempoTexto} para volver a consultar.`,
+            : `Has enviado demasiados mensajes seguidos (spam detectado). Espera ${tiempoTexto} para volver a consultar.`,
       };
     }
     return { bloqueado: false, blockedUntil: 0, strikes };
@@ -208,7 +248,7 @@ export function guardarBloqueoLocal(blockedUntil, strikes) {
 }
 
 /**
- * Registra el envío de un mensaje en el cliente y verifica si supera 5 mensajes en < 10 segundos.
+ * Registra el envío de un mensaje en el cliente y verifica si supera 5 mensajes en < 15 segundos.
  */
 function verificarYRegistrarEnvioLocal() {
   const estadoActual = obtenerEstadoBloqueoLocal();
@@ -238,7 +278,7 @@ function verificarYRegistrarEnvioLocal() {
         strikes: nuevosStrikes,
         mensaje: es24h
           ? `Se ha detectado reincidencia de spam (3 sanciones acumuladas). Tu acceso al modelo de chatbot ha sido bloqueado por 24 horas (${tiempoTexto}).`
-          : `Se detectó envío masivo de mensajes (5 o más en menos de 10 segundos). Se ha aplicado una sanción temporal de 5 minutos (Sanción ${nuevosStrikes} de ${MAX_STRIKES_PARA_24H}).`,
+          : `Se detectó envío masivo de mensajes (5 o más mensajes seguidos). Se ha aplicado una sanción temporal de 5 minutos (Sanción ${nuevosStrikes} de ${MAX_STRIKES_PARA_24H}).`,
       };
     }
 
@@ -272,7 +312,7 @@ export { IrenicModelError as GeminiError };
  * @returns {Promise<string>} Respuesta normativa en Markdown
  */
 export async function consultarManual({ historial = [], mensaje, adjunto, signal }) {
-  // 1. Verificar bloqueo anti-spam persistente en localStorage
+  // 1. Verificar bloqueo anti-spam persistente en localStorage (cuenta todo intento de envío)
   const controlSpamLocal = verificarYRegistrarEnvioLocal();
   if (controlSpamLocal.bloqueado) {
     throw new IrenicModelError('RATE_LIMITED', controlSpamLocal.mensaje, {
@@ -281,8 +321,8 @@ export async function consultarManual({ historial = [], mensaje, adjunto, signal
     });
   }
 
-  // 2. CAPA 1 (INPUT): Evaluar filtro local por Expresiones Regulares ANTES de llamar a la API
-  if (contieneInfraccionLocal(mensaje)) {
+  // 2. CAPA 1 (INPUT): Evaluar filtro local contextual antes de llamar a la API
+  if (contieneInfraccionLocal(mensaje, false)) {
     return MENSAJE_RECHAZO_NORMATIVO;
   }
 
@@ -345,7 +385,7 @@ export async function consultarManual({ historial = [], mensaje, adjunto, signal
     }
 
     // 3. CAPA 1 (OUTPUT): Verificar que la respuesta recibida tampoco infrinja el filtro
-    if (texto !== MENSAJE_RECHAZO_NORMATIVO && contieneInfraccionLocal(texto)) {
+    if (texto !== MENSAJE_RECHAZO_NORMATIVO && contieneInfraccionLocal(texto, true)) {
       return MENSAJE_RECHAZO_NORMATIVO;
     }
 

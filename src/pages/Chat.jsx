@@ -15,8 +15,8 @@ import '../styles/chat-messages.css';
 
 const ASSETS = `${import.meta.env.BASE_URL}assets/`;
 
-/** Enfriamiento (cooldown) de 3 segundos entre el envío de un mensaje y el siguiente */
-const COOLDOWN_ENVIO_MS = 3000;
+/** Enfriamiento corto anti-doble-clic (800ms) que permite que el detector Anti-Spam actúe si envían 5 mensajes seguidos */
+const COOLDOWN_ENVIO_MS = 800;
 
 /** Límite ligero (3.5 MB) para procesar imágenes y PDFs rápido y sin errores en Serverless */
 const MAX_ADJUNTO_BYTES = 3.5 * 1024 * 1024;
@@ -486,10 +486,11 @@ export default function Chat() {
       const mensaje = texto || 'Analiza este archivo adjunto conforme al Manual de Convivencia.';
       const historial = messagesRef.current;
 
+      const idMensajeUsuario = `u-${Date.now()}`;
       setMessages((prev) => [
         ...prev,
         {
-          id: `u-${Date.now()}`,
+          id: idMensajeUsuario,
           rol: 'usuario',
           texto: mensaje,
           adjuntoNombre: adjuntoActual?.nombre,
@@ -519,15 +520,17 @@ export default function Chat() {
           showToastGreen('Mensaje bloqueado: infringe las normas de uso y Términos de IRENIC.');
         }
 
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `b-${Date.now()}`,
-            rol: 'bot',
-            esError: fueRechazadoPorNormas,
-            texto: respuesta,
-          },
-        ]);
+        setMessages((prev) =>
+          prev
+            .map((m) => (fueRechazadoPorNormas && m.id === idMensajeUsuario ? { ...m, esBloqueado: true } : m))
+            .concat({
+              id: `b-${Date.now()}`,
+              rol: 'bot',
+              esError: fueRechazadoPorNormas,
+              esBloqueado: fueRechazadoPorNormas,
+              texto: respuesta,
+            })
+        );
       } catch (e) {
         if (e?.name === 'AbortError') return; // consulta reiniciada o página cerrada
         if (e instanceof IrenicModelError && e.code === 'RATE_LIMITED') {
@@ -541,10 +544,11 @@ export default function Chat() {
           e instanceof IrenicModelError
             ? e.message
             : 'No se pudo conectar con el modelo de chatbot de IRENIC. Inténtalo de nuevo.';
-        setMessages((prev) => [
-          ...prev,
-          { id: `e-${Date.now()}`, rol: 'bot', esError: true, texto: textoError },
-        ]);
+        setMessages((prev) =>
+          prev
+            .map((m) => (m.id === idMensajeUsuario ? { ...m, esBloqueado: true } : m))
+            .concat({ id: `e-${Date.now()}`, rol: 'bot', esError: true, esBloqueado: true, texto: textoError })
+        );
       } finally {
         if (abortRef.current === controlador) {
           abortRef.current = null;
