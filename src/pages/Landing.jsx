@@ -114,7 +114,7 @@ export default function Landing() {
 
             <div className="presentation-card">
               <div className="card-img-container">
-                {/* Imagen pendiente de actualizar por la ilustración del módulo de audio */}
+                {/* Ilustración del módulo de voz y lectura en audio */}
                 <img src={`${ASSETS}archivos-documentos.png`} alt="Interacción por Micrófono y Respuesta con Audio" className="card-img-illustration" />
               </div>
               <h3>Voz y Lectura en Audio</h3>
