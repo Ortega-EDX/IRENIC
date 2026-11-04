@@ -1,9 +1,11 @@
 import { Fragment } from 'react';
+import { useProtectedElementRef } from '../hooks/useDomIntegrityGuard.js';
 
 /**
  * Renderiza el analisis del motor normativo (subconjunto de Markdown) como JSX seguro,
  * sin usar dangerouslySetInnerHTML:
  *   "## Titulo", "- viñeta", "1. item", "**negrita**" y parrafos.
+ * Incluye protección activa (MutationObserver) contra alteración del texto vía DevTools.
  */
 function renderInline(texto, clave) {
   const partes = texto.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
@@ -72,9 +74,10 @@ function parsearBloques(texto) {
 
 export default function FormattedMessage({ texto }) {
   const bloques = parsearBloques(texto);
+  const { ref, tamperVersion } = useProtectedElementRef([texto]);
 
   return (
-    <div className="irenic-msg-formatted">
+    <div key={tamperVersion} ref={ref} className="irenic-msg-formatted">
       {bloques.map((b, i) => {
         if (b.tipo === 'titulo') {
           return (

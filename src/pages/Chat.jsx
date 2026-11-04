@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import usePageMeta from '../hooks/usePageMeta.js';
 import Toast from '../components/Toast.jsx';
 import FormattedMessage from '../components/FormattedMessage.jsx';
+import { useProtectedElementRef } from '../hooks/useDomIntegrityGuard.js';
 import {
   consultarManual,
   IrenicModelError,
@@ -135,6 +136,15 @@ function IconoPin({ size = 14, relleno = false }) {
       <line x1="12" y1="17" x2="12" y2="22"></line>
       <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
     </svg>
+  );
+}
+
+function ProtectedUserText({ texto }) {
+  const { ref, tamperVersion } = useProtectedElementRef([texto]);
+  return (
+    <div key={tamperVersion} ref={ref} className="irenic-msg-user-text">
+      {texto}
+    </div>
   );
 }
 
@@ -660,7 +670,7 @@ export default function Chat() {
                           <span>Mensaje del chatbot citado</span>
                         </div>
                       )}
-                      {m.rol === 'bot' ? <FormattedMessage texto={m.texto} /> : m.texto}
+                      {m.rol === 'bot' ? <FormattedMessage texto={m.texto} /> : <ProtectedUserText texto={m.texto} />}
 
                       {/* Opciones de las respuestas del chatbot: Escuchar respuesta + Pin para citar (máx. 1) */}
                       {m.rol === 'bot' && !m.esError && (

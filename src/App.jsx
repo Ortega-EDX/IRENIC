@@ -8,9 +8,12 @@ import TerminosCondiciones from './pages/TerminosCondiciones.jsx';
 import Faqs from './pages/Faqs.jsx';
 import Cookies from './pages/Cookies.jsx';
 import Footer from './components/Footer.jsx';
+import { useGlobalAntiTamper } from './hooks/useDomIntegrityGuard.js';
 
 export default function App() {
   const { pathname } = useLocation();
+
+  useGlobalAntiTamper();
 
   useEffect(() => {
     window.scrollTo(0, 0);
