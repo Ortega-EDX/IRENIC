@@ -58,8 +58,8 @@ export default function Cookies() {
         <h3 style={{ color: '#0f4c3a', marginTop: '1.5rem' }}>5. Contacto e inquietudes</h3>
         <p style={{ marginBottom: '2rem' }}>
           Si tienes dudas sobre el uso de estas tecnologías en IRENIC, puedes ponerte en contacto escribiendo a: {' '}
-          <a href="mailto:Irenic@colsam.edu.co" style={{ color: 'var(--color-verde-inst, #10b981)', fontWeight: 600 }}>
-            Irenic@colsam.edu.co
+          <a href="mailto:irenic@mail.colsam.edu.co" style={{ color: 'var(--color-verde-inst, #10b981)', fontWeight: 600 }}>
+            irenic@mail.colsam.edu.co
           </a>
         </p>
       </section>

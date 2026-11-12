@@ -105,8 +105,8 @@ export default function TerminosCondiciones() {
         <h3 style={{ color: '#0f4c3a', marginTop: '1.5rem' }}>9. Contacto e inquietudes</h3>
         <p style={{ marginBottom: '2rem' }}>
           Si tienes dudas sobre estos términos o sobre el funcionamiento de IRENIC, puedes escribir a:{' '}
-          <a href="mailto:Irenic@colsam.edu.co" style={{ color: 'var(--color-verde-inst, #10b981)', fontWeight: 600 }}>
-            Irenic@colsam.edu.co
+          <a href="mailto:irenic@mail.colsam.edu.co" style={{ color: 'var(--color-verde-inst, #10b981)', fontWeight: 600 }}>
+            irenic@mail.colsam.edu.co
           </a>
         </p>
       </section>

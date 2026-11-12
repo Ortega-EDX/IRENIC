@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import usePageMeta from '../hooks/usePageMeta.js';
 import '../styles/pages.css';
@@ -7,8 +6,6 @@ const ASSETS = `${import.meta.env.BASE_URL}assets/`;
 
 /**
  * Integrantes del Equipo de Desarrollo (Equipo INMAT - Grado 11° COLSAM).
- * Coloca las fotografías en `public/assets/equipo/` con los nombres indicados en `foto`.
- * Mientras se agregan los archivos, la tarjeta muestra automáticamente las iniciales del integrante.
  */
 const INTEGRANTES_EQUIPO = [
   {
@@ -16,8 +13,6 @@ const INTEGRANTES_EQUIPO = [
     nombre: 'Juan Sebastián Ortega Salcedo',
     iniciales: 'JO',
     rol: 'Arquitectura de Software & Backend',
-    foto: `${ASSETS}equipo/juan-ortega.webp`,
-    rutaArchivo: 'public/assets/equipo/juan-ortega.webp',
     aportes:
       'Diseño de la arquitectura cliente-servidor, implementación del proxy seguro (/api/chat), integración del motor normativo y despliegue de la plataforma.',
   },
@@ -26,8 +21,6 @@ const INTEGRANTES_EQUIPO = [
     nombre: 'Ignacio Geovanny Almeida Peñarrieta',
     iniciales: 'IA',
     rol: 'Frontend & Diseño UI/UX',
-    foto: `${ASSETS}equipo/ignacio-almeida.webp`,
-    rutaArchivo: 'public/assets/equipo/ignacio-almeida.webp',
     aportes:
       'Desarrollo de componentes interactivos en React, aplicación de la paleta cromática institucional anti-fatiga visual y adaptabilidad multidispositivo.',
   },
@@ -36,8 +29,6 @@ const INTEGRANTES_EQUIPO = [
     nombre: 'Jeider David Monsalvo Barrios',
     iniciales: 'JM',
     rol: 'Documentación & Marco Normativo',
-    foto: `${ASSETS}equipo/jeider-monsalvo.webp`,
-    rutaArchivo: 'public/assets/equipo/jeider-monsalvo.webp',
     aportes:
       'Estructuración y curaduría del Manual de Convivencia Escolar, alineación con la Ley 1620 de 2013, el SIEE y las rutas de debido proceso.',
   },
@@ -46,8 +37,6 @@ const INTEGRANTES_EQUIPO = [
     nombre: 'Alejandro David Ricaurte Colmenares',
     iniciales: 'AR',
     rol: 'Validación Normativa & Pruebas QA',
-    foto: `${ASSETS}equipo/alejandro-ricaurte.webp`,
-    rutaArchivo: 'public/assets/equipo/alejandro-ricaurte.webp',
     aportes:
       'Diseño de casos de prueba estudiantiles, verificación de precisión en la tipificación de faltas (Tipo I, II y III) y control de calidad de respuestas.',
   },
@@ -98,32 +87,17 @@ const PILARES_TECNOLOGICOS = [
 ];
 
 function TeamMemberCard({ integrante }) {
-  const [imgError, setImgError] = useState(false);
-
   return (
     <article className="irenic-team-card">
       <div className="irenic-team-avatar-wrap">
-        {!imgError ? (
-          <img
-            src={integrante.foto}
-            alt={`Fotografía de ${integrante.nombre}`}
-            className="irenic-team-avatar-img"
-            loading="lazy"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className="irenic-team-avatar-fallback" aria-label={integrante.nombre}>
-            {integrante.iniciales}
-          </div>
-        )}
+        <div className="irenic-team-avatar-fallback" aria-label={integrante.nombre}>
+          {integrante.iniciales}
+        </div>
       </div>
 
       <span className="irenic-team-role">{integrante.rol}</span>
       <h3 className="irenic-team-name">{integrante.nombre}</h3>
       <p className="irenic-team-bio">{integrante.aportes}</p>
-      <div className="irenic-team-path-hint" title="Ruta preparada para colocar la foto del integrante">
-        📷 {integrante.rutaArchivo}
-      </div>
     </article>
   );
 }

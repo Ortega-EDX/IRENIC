@@ -67,8 +67,8 @@ export default function TratamientoDatos() {
             </li>
             <li>
               <strong>Canal de Contacto Institucional:</strong>{' '}
-              <a href="mailto:Irenic@colsam.edu.co" style={{ color: 'var(--color-verde-inst)', fontWeight: 700 }}>
-                Irenic@colsam.edu.co
+              <a href="mailto:irenic@mail.colsam.edu.co" style={{ color: 'var(--color-verde-inst)', fontWeight: 700 }}>
+                irenic@mail.colsam.edu.co
               </a>
             </li>
           </ul>
@@ -135,8 +135,8 @@ export default function TratamientoDatos() {
             pantalla. Para ejercer formalmente los derechos de consulta, actualización, rectificación o supresión
             previstos en la Ley 1581 de 2012, los titulares o sus representantes legales (padres de familia o
             acudientes) pueden escribir al correo institucional:{' '}
-            <a href="mailto:Irenic@colsam.edu.co" style={{ color: 'var(--color-verde-inst)', fontWeight: 700 }}>
-              Irenic@colsam.edu.co
+            <a href="mailto:irenic@mail.colsam.edu.co" style={{ color: 'var(--color-verde-inst)', fontWeight: 700 }}>
+              irenic@mail.colsam.edu.co
             </a>
             .
           </p>

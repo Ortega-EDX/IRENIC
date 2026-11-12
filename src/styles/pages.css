@@ -270,19 +270,7 @@
   font-size: 0.89rem;
   color: var(--text-muted);
   line-height: 1.58;
-  margin-bottom: 0.85rem;
-}
-
-.irenic-team-path-hint {
-  margin-block-start: auto;
-  font-size: 0.74rem;
-  color: var(--text-subtle);
-  background: var(--color-hueso-soft);
-  border: 1px dashed var(--color-gris-platino);
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius-sm);
-  inline-size: 100%;
-  overflow-wrap: anywhere;
+  margin-bottom: 0;
 }
 
 /* Tarjeta de Docente Orientador */
